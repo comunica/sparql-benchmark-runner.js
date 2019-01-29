@@ -1,5 +1,8 @@
 # SPARQL Benchmark Runner
 
+[![npm version](https://badge.fury.io/js/sparql-benchmark-runner.svg)](https://www.npmjs.com/package/sparql-benchmark-runner)
+[![Docker Automated Build](https://img.shields.io/docker/automated/comunica/sparql-benchmark-runner.svg)](https://hub.docker.com/r/comunica/sparql-benchmark-runner/)
+
 This is a simple tool to run a query set against a given SPARQL endpoint, and measure its execution time.
 
 ## Installation
