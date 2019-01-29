@@ -6,7 +6,7 @@ const url = require('url');
 
 const args = minimist(process.argv.slice(2));
 if (args._.length !== 2 || args.h || args.help) {
-  process.stderr.write('usage: sparql-benchmark-runner endpoint-url path-to-queries [--replication 5] [--warmup 0]\n');
+  process.stderr.write('usage: sparql-benchmark-runner endpoint-url path-to-queries [--replication 5] [--warmup 0] [--output output.csv]\n');
   process.exit(1);
 }
 
@@ -24,6 +24,7 @@ let names = [];
 let queryFolder = args._[1];
 let replication = args.r || 5;
 let warmup = args.w || 0;
+let outputFile = args.o || 'output.csv';
 let filenames = fs.readdirSync(queryFolder);
 for (let filename of filenames) {
   let queries = fs.readFileSync(path.join(queryFolder, filename), 'utf8').split('\n\n').filter((x) => x.length > 0);
@@ -38,13 +39,16 @@ async function run() {
   // Await query execution until the endpoint is live
   while (!await isUp()) {
     await sleep(1000);
+    console.error('Endpoint not available yet, waiting for 1 second');
   }
 
   // Execute queries in warmup
+  console.error(`Warming up for ${warmup} rounds`);
   await execute({}, warmup);
 
   // Execute queries
   const data = {};
+  console.error(`Executing ${Object.keys(watdiv).length} queries with replication ${replication}`);
   await execute(data, replication);
 
   // Average results
@@ -53,10 +57,12 @@ async function run() {
   }
 
   // Print results
-  console.log(`name;id;results;time`);
+  console.error(`Writing results to ${outputFile}`);
+  const out = fs.createWriteStream(outputFile);
+  out.write(`name;id;results;time\n`);
   for (const key in data) {
     const { name, id, count, time } = data[key];
-    console.log(`${name};${id};${count};${time}`);
+    out.write(`${name};${id};${count};${time}\n`);
   }
 }
 
