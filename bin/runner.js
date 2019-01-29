@@ -5,8 +5,8 @@ const path = require('path');
 const url = require('url');
 
 const args = minimist(process.argv.slice(2));
-if ((args._.length !== 2 && args._.length !== 3) || args.h || args.help) {
-  process.stderr.write('usage: sparql-benchmark-runner endpoint-url path-to-queries [replication=5]\n');
+if (args._.length !== 2 || args.h || args.help) {
+  process.stderr.write('usage: sparql-benchmark-runner endpoint-url path-to-queries [--replication 5] [--warmup 0]\n');
   process.exit(1);
 }
 
@@ -22,7 +22,8 @@ const options = {
 let watdiv = {};
 let names = [];
 let queryFolder = args._[1];
-let replication = args._.length > 2 ? parseInt(args._[2], 10) : 5;
+let replication = args.r || 5;
+let warmup = args.w || 0;
 let filenames = fs.readdirSync(queryFolder);
 for (let filename of filenames) {
   let queries = fs.readFileSync(path.join(queryFolder, filename), 'utf8').split('\n\n').filter((x) => x.length > 0);
@@ -31,13 +32,31 @@ for (let filename of filenames) {
   names.push(name);
 }
 
-let data = {};
-
 run();
 
 async function run() {
+  // Execute queries in warmup
+  await execute({}, warmup);
+
   // Execute queries
-  for (let iteration = 0; iteration < replication; iteration++) {
+  const data = {};
+  await execute(data, replication);
+
+  // Average results
+  for (const key in data) {
+    data[key].time = Math.floor(data[key].time / replication);
+  }
+
+  // Print results
+  console.log(`name;id;results;time`);
+  for (const key in data) {
+    const { name, id, count, time } = data[key];
+    console.log(`${name};${id};${count};${time}`);
+  }
+}
+
+async function execute(data, iterations) {
+  for (let iteration = 0; iteration < iterations; iteration++) {
     for (const name in watdiv) {
       const test = watdiv[name];
       for (const id in test) {
@@ -50,18 +69,6 @@ async function run() {
         }
       }
     }
-  }
-
-  // Average results
-  for (const key in data) {
-    data[key].time = Math.floor(data[key].time / replication);
-  }
-
-  // Print results
-  console.log(`name;id;results;time`);
-  for (const key in data) {
-    const { name, id, count, time } = data[key];
-    console.log(`${name};${id};${count};${time}`);
   }
 }
 
