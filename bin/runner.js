@@ -35,6 +35,11 @@ for (let filename of filenames) {
 run();
 
 async function run() {
+  // Await query execution until the endpoint is live
+  while (!await isUp()) {
+    await sleep(1000);
+  }
+
   // Execute queries in warmup
   await execute({}, warmup);
 
@@ -94,4 +99,24 @@ function stop(hrstart) {
   // execution time simulated with setTimeout function
   let hrend = process.hrtime(hrstart);
   return hrend[0] * 1000 + hrend[1] / 1000000;
+}
+
+async function isUp() {
+  return new Promise((resolve) => {
+    const req = http.request(options, res => {
+      res.on('error', () => resolve(false));
+      res.on('data', () => {});
+      res.on('end', () => resolve(true));
+    });
+
+    req.on('error', () => resolve(false));
+    req.write('query=ASK WHERE { ?s ?p ?o }');
+    req.end();
+  });
+}
+
+async function sleep(durationMs) {
+  return new Promise((resolve) => {
+      setTimeout(resolve, durationMs);
+  });
 }
