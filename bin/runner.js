@@ -113,6 +113,9 @@ function stop(hrstart) {
 async function isUp() {
   return new Promise((resolve) => {
     const req = http.request(options, res => {
+      if (res.statusCode !== 200) {
+        return resolve(false);
+      }
       res.on('error', () => resolve(false));
       res.on('data', () => {});
       res.on('end', () => resolve(true));
