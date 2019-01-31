@@ -122,7 +122,7 @@ async function isUp() {
     });
 
     req.on('error', () => resolve(false));
-    req.write('query=ASK WHERE { ?s ?p ?o }');
+    req.write('query=' + encodeURIComponent('SELECT * WHERE { ?s ?p ?o } LIMIT 1'));
     req.end();
   });
 }
