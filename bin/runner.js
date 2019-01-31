@@ -67,10 +67,12 @@ async function run() {
 }
 
 async function execute(data, iterations) {
+  process.stdout.write("Executing query ");
   for (let iteration = 0; iteration < iterations; iteration++) {
     for (const name in watdiv) {
       const test = watdiv[name];
       for (const id in test) {
+        process.stdout.write(`"\rExecuting query ${name}:${id} for iteration ${iteration}/${iterations}`);
         const query = test[id];
         const { count, time } = await call(query);
         if (!data[name + id]) {
@@ -81,6 +83,7 @@ async function execute(data, iterations) {
       }
     }
   }
+  process.stdout.write(`"\rExecuted all queries\n`);
 }
 
 function call(query) {
