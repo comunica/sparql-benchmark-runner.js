@@ -6,7 +6,11 @@ const url = require('url');
 
 const args = minimist(process.argv.slice(2));
 if (args._.length !== 2 || args.h || args.help) {
-  process.stderr.write('usage: sparql-benchmark-runner endpoint-url path-to-queries [--replication 5] [--warmup 0] [--output output.csv]\n');
+  process.stderr.write('usage: sparql-benchmark-runner endpoint-url path-to-queries [-r 5] [-w 0] [-o output.csv] [--timestamps]\n');
+  process.stderr.write('  -r    # of replication runs\n');
+  process.stderr.write('  -w    # of warmup runs\n');
+  process.stderr.write('  -o    output file\n');
+  process.stderr.write('  --timestamps    if enabled also outputs timestamps for when each result was received\n');
   process.exit(1);
 }
 
@@ -25,6 +29,7 @@ let queryFolder = args._[1];
 let replication = args.r || 5;
 let warmup = args.w || 0;
 let outputFile = args.o || 'output.csv';
+let timestampsEnabled = args.timestamps;
 let filenames = fs.readdirSync(queryFolder);
 for (let filename of filenames) {
   let queries = fs.readFileSync(path.join(queryFolder, filename), 'utf8').split('\n\n').filter((x) => x.length > 0);
@@ -54,15 +59,16 @@ async function run() {
   // Average results
   for (const key in data) {
     data[key].time = Math.floor(data[key].time / replication);
+    data[key].timestamps = data[key].timestamps.map(t => Math.floor(t / replication));
   }
 
   // Print results
   console.error(`Writing results to ${outputFile}`);
   const out = fs.createWriteStream(outputFile);
-  out.write(`name;id;results;time\n`);
+  out.write(`name;id;results;time${timestampsEnabled ? ';timestamps' : ''}\n`);
   for (const key in data) {
-    const { name, id, count, time } = data[key];
-    out.write(`${name};${id};${count};${time}\n`);
+    const { name, id, count, time, timestamps } = data[key];
+    out.write(`${name};${id};${count};${time}${timestampsEnabled? ';' + timestamps.join(' ') : ''}\n`);
   }
 }
 
@@ -74,11 +80,12 @@ async function execute(data, iterations) {
       for (const id in test) {
         process.stdout.write(`"\rExecuting query ${name}:${id} for iteration ${iteration}/${iterations}`);
         const query = test[id];
-        const { count, time } = await call(query);
+        const { count, time, timestamps } = await call(query);
         if (!data[name + id]) {
-          data[name + id] = { name, id, count, time };
+          data[name + id] = { name, id, count, time, timestamps };
         } else {
           data[name + id].time += time;
+          combineTimestamps(data[name + id], timestamps);
         }
       }
     }
@@ -86,14 +93,27 @@ async function execute(data, iterations) {
   process.stdout.write(`"\rExecuted all queries\n`);
 }
 
+function combineTimestamps(dataEntry, timestamps) {
+  const length = Math.min(dataEntry.timestamps.length, timestamps.length);
+  for (let i = 0; i < length; ++i) {
+    dataEntry.timestamps[i] += timestamps[i];
+  }
+}
+
 function call(query) {
   return new Promise((resolve, reject) => {
     let hrstart = process.hrtime();
     let count = -2; // ignore header lines
+    const timestamps = [];
     const req = http.request(options, res => {
-      res.on('data', data => { count += data.toString().split('\n').filter(x => x.trim().length > 0).length; });
+      res.on('data', data => {
+        count += data.toString().split('\n').filter(x => x.trim().length > 0).length;
+        if (timestamps) {
+          timestamps.push(countTime(hrstart));
+        }
+      });
       res.on('end', () => {
-        resolve({ count, time: stop(hrstart) });
+        resolve({ count, time: countTime(hrstart), timestamps });
       });
       res.on('error', reject);
     });
@@ -104,7 +124,7 @@ function call(query) {
 }
 
 
-function stop(hrstart) {
+function countTime(hrstart) {
   // execution time simulated with setTimeout function
   let hrend = process.hrtime(hrstart);
   return hrend[0] * 1000 + hrend[1] / 1000000;
