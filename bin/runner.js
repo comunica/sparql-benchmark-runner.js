@@ -107,9 +107,10 @@ function call(query) {
     const timestamps = [];
     const req = http.request(options, res => {
       res.on('data', data => {
-        count += data.toString().split('\n').filter(x => x.trim().length > 0).length;
-        if (timestamps) {
-          timestamps.push(countTime(hrstart));
+        const newResults = data.toString().split('\n').filter(x => x.trim().length > 0).length;
+        count += newResults;
+        if (count > 0 && timestamps) {
+          timestamps.push(...Array(newResults).fill(countTime(hrstart)));
         }
       });
       res.on('end', () => {
