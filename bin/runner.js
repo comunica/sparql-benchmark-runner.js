@@ -107,6 +107,9 @@ function call(query) {
     const timestamps = [];
     const req = http.request(options, res => {
       res.on('data', data => {
+        if (res.statusCode !== 200) {
+          return reject(new Error('Request failed with status code ' + res.statusCode));
+        }
         const newResults = data.toString().split('\n').filter(x => x.trim().length > 0).length;
         count += newResults;
         if (count > 0 && timestamps) {
