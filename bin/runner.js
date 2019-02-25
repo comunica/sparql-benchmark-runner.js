@@ -30,7 +30,7 @@ let replication = args.r || 5;
 let warmup = args.w || 0;
 let outputFile = args.o || 'output.csv';
 let timestampsEnabled = args.timestamps;
-let filenames = fs.readdirSync(queryFolder);
+let filenames = fs.readdirSync(queryFolder).filter((filename) => filename.endsWith('.txt') || filename.endsWith('.sparql'));
 for (let filename of filenames) {
   let queries = fs.readFileSync(path.join(queryFolder, filename), 'utf8').split('\n\n').filter((x) => x.length > 0);
   let name = filename.replace(/\.txt$/, '');
