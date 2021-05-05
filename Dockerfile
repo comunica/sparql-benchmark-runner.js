@@ -4,7 +4,8 @@ FROM node:10
 ENV dir /var/www/sparql-benchmark-runner/
 
 # Copy the engine files
-COPY bin/*.js ${dir}/bin/
+COPY bin/* ${dir}/bin/
+COPY lib/*.js ${dir}/lib/
 COPY package.json ${dir}
 
 # Install the node module
@@ -12,7 +13,7 @@ RUN cd ${dir} && npm install --only=production
 
 # Run base binary
 WORKDIR ${dir}
-ENTRYPOINT ["node", "./bin/runner.js"]
+ENTRYPOINT ["node", "./bin/sparql-benchmark-runner"]
 
 # Default command
 CMD ["--help"]
