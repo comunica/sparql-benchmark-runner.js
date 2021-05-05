@@ -72,7 +72,7 @@ This tool is also available as a Docker image:
 ```bash
 $ docker pull comunica/sparql-benchmark-runner
 $ touch output.csv
-$ docker run --rm -it -v $(pwd)/output.csv:/tmp/output.csv -e http://example.org/sparql -q watdiv-10M/ \
+$ docker run --rm -it -v $(pwd)/output.csv:/tmp/output.csv -v $(pwd)/queries:/tmp/queries comunica/sparql-benchmark-runner -e https://dbpedia.org/sparql -q /tmp/queries \
   --output /tmp/output.csv --replication 5 --warmup 1
 ```
 
