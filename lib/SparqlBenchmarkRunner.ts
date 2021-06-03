@@ -30,7 +30,7 @@ export class SparqlBenchmarkRunner {
    * execute all query sets against the SPARQL endpoint.
    * Afterwards, all results are collected and averaged.
    */
-  public async run(): Promise<IBenchmarkResults> {
+  public async run(options: IRunOptions = {}): Promise<IBenchmarkResults> {
     // Await query execution until the endpoint is live
     while (!await this.isUp()) {
       await this.sleep(1_000);
@@ -44,7 +44,13 @@ export class SparqlBenchmarkRunner {
     // Execute queries
     const results: IBenchmarkResults = {};
     this.log(`Executing ${Object.keys(this.querySets).length} queries with replication ${this.replication}\n`);
+    if (options.onStart) {
+      await options.onStart();
+    }
     await this.executeQueries(results, this.replication);
+    if (options.onStop) {
+      await options.onStop();
+    }
 
     // Average results
     for (const key in results) {
@@ -181,4 +187,15 @@ export interface ISparqlBenchmarkRunnerArgs {
    * @param message Message to log.
    */
   logger?: (message: string) => void;
+}
+
+export interface IRunOptions {
+  /**
+   * A listener for when the actual query executions have started.
+   */
+  onStart?: () => Promise<void>;
+  /**
+   * A listener for when the actual query executions have stopped.
+   */
+  onStop?: () => Promise<void>;
 }

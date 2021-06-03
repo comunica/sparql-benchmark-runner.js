@@ -169,6 +169,14 @@ describe('SparqlBenchmarkRunner', () => {
       // Expect results
       expect(resolved).toHaveBeenCalled();
     });
+
+    it('runs the whole query set and invokes listeners', async() => {
+      const onStart = jest.fn();
+      const onStop = jest.fn();
+      await runner.run({ onStart, onStop });
+      expect(onStart).toHaveBeenCalledTimes(1);
+      expect(onStop).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('executeQueries', () => {
