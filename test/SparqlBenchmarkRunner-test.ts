@@ -239,6 +239,33 @@ describe('SparqlBenchmarkRunner', () => {
         b1: { count: 3, id: '1', name: 'b', time: 45, timestamps: []},
       });
     });
+
+    it('logs error for throwing query', async() => {
+      let called = false;
+      fetcher.fetchBindings = jest.fn(async() => {
+        if (!called) {
+          called = true;
+          throw new Error(`Dummy error in first fetchBindings call`);
+        }
+        return streamifyArray([ 'a', 'b', 'c' ]);
+      });
+
+      const results = {};
+      await runner.executeQueries(results, 1);
+
+      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(4);
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q1');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q2');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
+      expect(results).toEqual({
+        a1: { count: 3, id: '1', name: 'a', time: 1, timestamps: []},
+        b0: { count: 3, id: '0', name: 'b', time: 3, timestamps: []},
+        b1: { count: 3, id: '1', name: 'b', time: 5, timestamps: []},
+      });
+
+      expect(logger).toHaveBeenCalledWith(`\rError occurred at query a:0 for iteration 1/1: Dummy error in first fetchBindings call\n`);
+    });
   });
 
   describe('executeQuery', () => {

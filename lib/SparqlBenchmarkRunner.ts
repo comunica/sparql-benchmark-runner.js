@@ -73,20 +73,24 @@ export class SparqlBenchmarkRunner {
         const test = this.querySets[name];
         // eslint-disable-next-line @typescript-eslint/no-for-in-array
         for (const id in test) {
-          this.log(`"\rExecuting query ${name}:${id} for iteration ${iteration + 1}/${iterations}`);
+          this.log(`\rExecuting query ${name}:${id} for iteration ${iteration + 1}/${iterations}`);
           const query = test[id];
-          const { count, time, timestamps } = await this.executeQuery(query);
-          if (!data[name + id]) {
-            data[name + id] = { name, id, count, time, timestamps };
-          } else {
-            data[name + id].time += time;
-            const dataEntry = data[name + id];
+          try {
+            const { count, time, timestamps } = await this.executeQuery(query);
+            if (!data[name + id]) {
+              data[name + id] = { name, id, count, time, timestamps };
+            } else {
+              data[name + id].time += time;
+              const dataEntry = data[name + id];
 
-            // Combine timestamps
-            const length = Math.min(dataEntry.timestamps.length, timestamps.length);
-            for (let i = 0; i < length; ++i) {
-              dataEntry.timestamps[i] += timestamps[i];
+              // Combine timestamps
+              const length = Math.min(dataEntry.timestamps.length, timestamps.length);
+              for (let i = 0; i < length; ++i) {
+                dataEntry.timestamps[i] += timestamps[i];
+              }
             }
+          } catch (error: unknown) {
+            this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${(<Error> error).message}\n`);
           }
         }
       }
