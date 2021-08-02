@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.0"></a>
+## [v2.2.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.1.0...v2.2.0) - 2021-08-02
+
+### Added
+* [Log query exec errors](https://github.com/comunica/sparql-benchmark-runner.js/commit/9d619f6a88773cac13354aed0865739f15362a21)
+
 <a name="v2.1.0"></a>
 ## [v2.1.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.0.0...v2.1.0) - 2021-06-03
 
