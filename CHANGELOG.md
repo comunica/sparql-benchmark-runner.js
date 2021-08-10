@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.2.1"></a>
+## [v2.2.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.2.0...v2.2.1) - 2021-08-10
+
+### Fixed
+* [Delay next query exec after error](https://github.com/comunica/sparql-benchmark-runner.js/commit/516af7c3d7c7636e3c7bdac7f7d8816ac59b452c)
+
 <a name="v2.2.0"></a>
 ## [v2.2.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.1.0...v2.2.0) - 2021-08-02
 
