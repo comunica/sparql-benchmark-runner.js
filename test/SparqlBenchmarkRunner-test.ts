@@ -7,14 +7,15 @@ jest.mock('fetch-sparql-endpoint', () => ({
   SparqlEndpointFetcher: jest.fn().mockImplementation(() => fetcher),
 }));
 
-jest.useFakeTimers();
-
 describe('SparqlBenchmarkRunner', () => {
   let runner: SparqlBenchmarkRunner;
   let querySets: Record<string, string[]>;
   let logger: (message: string) => void;
 
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+
     querySets = {
       a: [ 'Q1', 'Q2' ],
       b: [ 'Q3', 'Q4' ],
@@ -241,6 +242,8 @@ describe('SparqlBenchmarkRunner', () => {
     });
 
     it('logs error for throwing query', async() => {
+      (<any> global).setTimeout = jest.fn((cb: any) => cb());
+
       let called = false;
       fetcher.fetchBindings = jest.fn(async() => {
         if (!called) {
@@ -265,6 +268,7 @@ describe('SparqlBenchmarkRunner', () => {
       });
 
       expect(logger).toHaveBeenCalledWith(`\rError occurred at query a:0 for iteration 1/1: Dummy error in first fetchBindings call\n`);
+      expect(setTimeout).toHaveBeenCalled();
     });
   });
 

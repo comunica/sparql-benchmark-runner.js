@@ -91,6 +91,9 @@ export class SparqlBenchmarkRunner {
             }
           } catch (error: unknown) {
             this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${(<Error> error).message}\n`);
+
+            // Wait a bit for endpoint to normalize
+            await new Promise(resolve => setTimeout(resolve, 5_000));
           }
         }
       }
