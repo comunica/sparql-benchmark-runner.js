@@ -11,6 +11,7 @@ export class SparqlBenchmarkRunner {
   private readonly warmup: number;
   private readonly timestampsRecording: boolean;
   private readonly logger?: (message: string) => void;
+  private readonly upQuery: string;
 
   private readonly fetcher: SparqlEndpointFetcher;
 
@@ -21,6 +22,7 @@ export class SparqlBenchmarkRunner {
     this.warmup = options.warmup;
     this.timestampsRecording = options.timestampsRecording;
     this.logger = options.logger;
+    this.upQuery = options.upQuery || 'SELECT * WHERE { ?s ?p ?o } LIMIT 1';
 
     this.fetcher = new SparqlEndpointFetcher();
   }
@@ -138,7 +140,7 @@ export class SparqlBenchmarkRunner {
    */
   public async isUp(): Promise<boolean> {
     try {
-      const results = await this.fetcher.fetchBindings(this.endpoint, 'SELECT * WHERE { ?s ?p ?o } LIMIT 1');
+      const results = await this.fetcher.fetchBindings(this.endpoint, this.upQuery);
       return new Promise<boolean>(resolve => {
         results.on('error', () => resolve(false));
         results.on('data', () => {
@@ -194,6 +196,10 @@ export interface ISparqlBenchmarkRunnerArgs {
    * @param message Message to log.
    */
   logger?: (message: string) => void;
+  /**
+   * SPARQL SELECT query that will be sent to the endpoint to check if it is up.
+   */
+  upQuery?: string;
 }
 
 export interface IRunOptions {
