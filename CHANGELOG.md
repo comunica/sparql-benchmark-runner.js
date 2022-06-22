@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.3.0"></a>
+## [v2.3.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.2.1...v2.3.0) - 2022-06-22
+
+### Added
+* [Allow overriding query to check if endpoint is up](https://github.com/comunica/sparql-benchmark-runner.js/commit/29a84d9adf7c639a21d8eeedba1988e0fdb889f3)
+
 <a name="v2.2.1"></a>
 ## [v2.2.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.2.0...v2.2.1) - 2021-08-10
 
