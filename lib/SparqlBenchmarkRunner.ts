@@ -34,10 +34,7 @@ export class SparqlBenchmarkRunner {
    */
   public async run(options: IRunOptions = {}): Promise<IBenchmarkResults> {
     // Await query execution until the endpoint is live
-    while (!await this.isUp()) {
-      await this.sleep(1_000);
-      this.log('Endpoint not available yet, waiting for 1 second\n');
-    }
+    await this.waitUntilUp();
 
     // Execute queries in warmup
     this.log(`Warming up for ${this.warmup} rounds\n`);
@@ -80,7 +77,7 @@ export class SparqlBenchmarkRunner {
           try {
             const { count, time, timestamps } = await this.executeQuery(query);
             if (!data[name + id]) {
-              data[name + id] = { name, id, count, time, timestamps };
+              data[name + id] = { name, id, count, time, timestamps, error: false };
             } else {
               data[name + id].time += time;
               const dataEntry = data[name + id];
@@ -92,10 +89,14 @@ export class SparqlBenchmarkRunner {
               }
             }
           } catch (error: unknown) {
+            // Mark result as errored
+            data[name + id] = { name, id, count: 0, time: 0, timestamps: [], error: true };
+
             this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${(<Error> error).message}\n`);
 
-            // Wait a bit for endpoint to normalize
-            await new Promise(resolve => setTimeout(resolve, 5_000));
+            // Wait until the endpoint is properly live again
+            await new Promise(resolve => setTimeout(resolve, 3_000));
+            await this.waitUntilUp();
           }
         }
       }
@@ -150,6 +151,16 @@ export class SparqlBenchmarkRunner {
       });
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Wait until the SPARQL endpoint is available.
+   */
+  public async waitUntilUp(): Promise<void> {
+    while (!await this.isUp()) {
+      await this.sleep(1_000);
+      this.log('Endpoint not available yet, waiting for 1 second\n');
     }
   }
 

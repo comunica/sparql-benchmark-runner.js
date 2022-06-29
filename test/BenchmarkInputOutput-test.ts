@@ -57,6 +57,7 @@ describe('BenchmarkInputOutput', () => {
         {
           a0: {
             count: 3,
+            error: false,
             id: '0',
             name: 'a',
             time: 25,
@@ -64,6 +65,7 @@ describe('BenchmarkInputOutput', () => {
           },
           a1: {
             count: 3,
+            error: false,
             id: '1',
             name: 'a',
             time: 27,
@@ -71,6 +73,7 @@ describe('BenchmarkInputOutput', () => {
           },
           b0: {
             count: 3,
+            error: false,
             id: '0',
             name: 'b',
             time: 29,
@@ -78,6 +81,7 @@ describe('BenchmarkInputOutput', () => {
           },
           b1: {
             count: 3,
+            error: false,
             id: '1',
             name: 'b',
             time: 31,
@@ -89,11 +93,11 @@ describe('BenchmarkInputOutput', () => {
       );
 
       expect(lineWriter).toHaveBeenCalledTimes(5);
-      expect(lineWriter).toHaveBeenCalledWith('name;id;results;time\n');
-      expect(lineWriter).toHaveBeenCalledWith('a;0;3;25\n');
-      expect(lineWriter).toHaveBeenCalledWith('a;1;3;27\n');
-      expect(lineWriter).toHaveBeenCalledWith('b;0;3;29\n');
-      expect(lineWriter).toHaveBeenCalledWith('b;1;3;31\n');
+      expect(lineWriter).toHaveBeenCalledWith('name;id;results;time;error\n');
+      expect(lineWriter).toHaveBeenCalledWith('a;0;3;25;false\n');
+      expect(lineWriter).toHaveBeenCalledWith('a;1;3;27;false\n');
+      expect(lineWriter).toHaveBeenCalledWith('b;0;3;29;false\n');
+      expect(lineWriter).toHaveBeenCalledWith('b;1;3;31;false\n');
       expect(lineEnder).toHaveBeenCalled();
     });
 
@@ -102,6 +106,7 @@ describe('BenchmarkInputOutput', () => {
         {
           a0: {
             count: 3,
+            error: false,
             id: '0',
             name: 'a',
             time: 64,
@@ -113,6 +118,7 @@ describe('BenchmarkInputOutput', () => {
           },
           a1: {
             count: 3,
+            error: false,
             id: '1',
             name: 'a',
             time: 69,
@@ -124,6 +130,7 @@ describe('BenchmarkInputOutput', () => {
           },
           b0: {
             count: 3,
+            error: false,
             id: '0',
             name: 'b',
             time: 74,
@@ -135,6 +142,7 @@ describe('BenchmarkInputOutput', () => {
           },
           b1: {
             count: 3,
+            error: false,
             id: '1',
             name: 'b',
             time: 79,
@@ -150,11 +158,11 @@ describe('BenchmarkInputOutput', () => {
       );
 
       expect(lineWriter).toHaveBeenCalledTimes(5);
-      expect(lineWriter).toHaveBeenCalledWith('name;id;results;time;timestamps\n');
-      expect(lineWriter).toHaveBeenCalledWith('a;0;3;64;61 62 63\n');
-      expect(lineWriter).toHaveBeenCalledWith('a;1;3;69;66 67 68\n');
-      expect(lineWriter).toHaveBeenCalledWith('b;0;3;74;71 72 73\n');
-      expect(lineWriter).toHaveBeenCalledWith('b;1;3;79;76 77 78\n');
+      expect(lineWriter).toHaveBeenCalledWith('name;id;results;time;error;timestamps\n');
+      expect(lineWriter).toHaveBeenCalledWith('a;0;3;64;false;61 62 63\n');
+      expect(lineWriter).toHaveBeenCalledWith('a;1;3;69;false;66 67 68\n');
+      expect(lineWriter).toHaveBeenCalledWith('b;0;3;74;false;71 72 73\n');
+      expect(lineWriter).toHaveBeenCalledWith('b;1;3;79;false;76 77 78\n');
       expect(lineEnder).toHaveBeenCalled();
     });
   });

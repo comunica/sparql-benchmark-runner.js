@@ -44,6 +44,7 @@ describe('SparqlBenchmarkRunner', () => {
       expect(results).toEqual({
         a0: {
           count: 3,
+          error: false,
           id: '0',
           name: 'a',
           time: 25,
@@ -51,6 +52,7 @@ describe('SparqlBenchmarkRunner', () => {
         },
         a1: {
           count: 3,
+          error: false,
           id: '1',
           name: 'a',
           time: 27,
@@ -58,6 +60,7 @@ describe('SparqlBenchmarkRunner', () => {
         },
         b0: {
           count: 3,
+          error: false,
           id: '0',
           name: 'b',
           time: 29,
@@ -65,6 +68,7 @@ describe('SparqlBenchmarkRunner', () => {
         },
         b1: {
           count: 3,
+          error: false,
           id: '1',
           name: 'b',
           time: 31,
@@ -91,6 +95,7 @@ describe('SparqlBenchmarkRunner', () => {
       expect(results).toEqual({
         a0: {
           count: 3,
+          error: false,
           id: '0',
           name: 'a',
           time: 64,
@@ -102,6 +107,7 @@ describe('SparqlBenchmarkRunner', () => {
         },
         a1: {
           count: 3,
+          error: false,
           id: '1',
           name: 'a',
           time: 69,
@@ -113,6 +119,7 @@ describe('SparqlBenchmarkRunner', () => {
         },
         b0: {
           count: 3,
+          error: false,
           id: '0',
           name: 'b',
           time: 74,
@@ -124,6 +131,7 @@ describe('SparqlBenchmarkRunner', () => {
         },
         b1: {
           count: 3,
+          error: false,
           id: '1',
           name: 'b',
           time: 79,
@@ -191,10 +199,10 @@ describe('SparqlBenchmarkRunner', () => {
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
       expect(results).toEqual({
-        a0: { count: 3, id: '0', name: 'a', time: 1, timestamps: []},
-        a1: { count: 3, id: '1', name: 'a', time: 3, timestamps: []},
-        b0: { count: 3, id: '0', name: 'b', time: 5, timestamps: []},
-        b1: { count: 3, id: '1', name: 'b', time: 7, timestamps: []},
+        a0: { count: 3, error: false, id: '0', name: 'a', time: 1, timestamps: []},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 3, timestamps: []},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 5, timestamps: []},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 7, timestamps: []},
       });
     });
 
@@ -217,10 +225,10 @@ describe('SparqlBenchmarkRunner', () => {
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
       expect(results).toEqual({
-        a0: { count: 3, id: '0', name: 'a', time: 4, timestamps: [ 1, 2, 3 ]},
-        a1: { count: 3, id: '1', name: 'a', time: 9, timestamps: [ 6, 7, 8 ]},
-        b0: { count: 3, id: '0', name: 'b', time: 14, timestamps: [ 11, 12, 13 ]},
-        b1: { count: 3, id: '1', name: 'b', time: 19, timestamps: [ 16, 17, 18 ]},
+        a0: { count: 3, error: false, id: '0', name: 'a', time: 4, timestamps: [ 1, 2, 3 ]},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 9, timestamps: [ 6, 7, 8 ]},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 14, timestamps: [ 11, 12, 13 ]},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 19, timestamps: [ 16, 17, 18 ]},
       });
     });
 
@@ -234,14 +242,14 @@ describe('SparqlBenchmarkRunner', () => {
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
       expect(results).toEqual({
-        a0: { count: 3, id: '0', name: 'a', time: 27, timestamps: []},
-        a1: { count: 3, id: '1', name: 'a', time: 33, timestamps: []},
-        b0: { count: 3, id: '0', name: 'b', time: 39, timestamps: []},
-        b1: { count: 3, id: '1', name: 'b', time: 45, timestamps: []},
+        a0: { count: 3, error: false, id: '0', name: 'a', time: 27, timestamps: []},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 33, timestamps: []},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 39, timestamps: []},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 45, timestamps: []},
       });
     });
 
-    it('logs error for throwing query', async() => {
+    it('logs error for throwing query and mark it as errored', async() => {
       (<any> global).setTimeout = jest.fn((cb: any) => cb());
 
       let called = false;
@@ -256,15 +264,16 @@ describe('SparqlBenchmarkRunner', () => {
       const results = {};
       await runner.executeQueries(results, 1);
 
-      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(4);
+      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(5);
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q1');
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q2');
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
       expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
       expect(results).toEqual({
-        a1: { count: 3, id: '1', name: 'a', time: 1, timestamps: []},
-        b0: { count: 3, id: '0', name: 'b', time: 3, timestamps: []},
-        b1: { count: 3, id: '1', name: 'b', time: 5, timestamps: []},
+        a0: { count: 0, error: true, id: '0', name: 'a', time: 0, timestamps: []},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 1, timestamps: []},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 3, timestamps: []},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 5, timestamps: []},
       });
 
       expect(logger).toHaveBeenCalledWith(`\rError occurred at query a:0 for iteration 1/1: Dummy error in first fetchBindings call\n`);

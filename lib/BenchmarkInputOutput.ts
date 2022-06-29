@@ -37,10 +37,10 @@ export async function writeBenchmarkResults(
   timestampsRecording: boolean,
 ): Promise<void> {
   const out = fs.createWriteStream(outputFile);
-  out.write(`name;id;results;time${timestampsRecording ? ';timestamps' : ''}\n`);
+  out.write(`name;id;results;time;error${timestampsRecording ? ';timestamps' : ''}\n`);
   for (const key in results) {
-    const { name, id, count, time, timestamps } = results[key];
-    out.write(`${name};${id};${count};${time}${timestampsRecording ? `;${timestamps.join(' ')}` : ''}\n`);
+    const { name, id, count, time, error, timestamps } = results[key];
+    out.write(`${name};${id};${count};${time};${error}${timestampsRecording ? `;${timestamps.join(' ')}` : ''}\n`);
   }
   out.end();
 }

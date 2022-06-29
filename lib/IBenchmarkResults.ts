@@ -13,4 +13,5 @@ export interface IBenchmarkResult {
   count: number;
   time: number;
   timestamps: number[];
+  error: boolean;
 }
