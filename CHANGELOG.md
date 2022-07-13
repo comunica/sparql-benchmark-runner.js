@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.5.0"></a>
+## [v2.5.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.4.0...v2.5.0) - 2022-07-13
+
+### Changed
+* [Only print a single line when waiting for endpoint to be up](https://github.com/comunica/sparql-benchmark-runner.js/commit/25406e2689712f8a501ec4ee353e0f18728093d4)
+
 <a name="v2.4.0"></a>
 ## [v2.4.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.3.0...v2.4.0) - 2022-06-29
 
