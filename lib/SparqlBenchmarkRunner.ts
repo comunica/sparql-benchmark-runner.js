@@ -158,10 +158,12 @@ export class SparqlBenchmarkRunner {
    * Wait until the SPARQL endpoint is available.
    */
   public async waitUntilUp(): Promise<void> {
+    let counter = 0;
     while (!await this.isUp()) {
       await this.sleep(1_000);
-      this.log('Endpoint not available yet, waiting for 1 second\n');
+      this.log(`\rEndpoint not available yet, waited for ${++counter} seconds...`);
     }
+    this.log(`\rEndpoint available after ${counter} seconds.\n`);
   }
 
   /**
