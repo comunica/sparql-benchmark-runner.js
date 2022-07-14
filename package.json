@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "@types/yargs": "^16.0.1",
-    "fetch-sparql-endpoint": "^2.0.1",
+    "fetch-sparql-endpoint": "^2.4.1",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

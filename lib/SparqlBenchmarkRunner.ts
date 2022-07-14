@@ -12,8 +12,8 @@ export class SparqlBenchmarkRunner {
   private readonly timestampsRecording: boolean;
   private readonly logger?: (message: string) => void;
   private readonly upQuery: string;
-
-  private readonly fetcher: SparqlEndpointFetcher;
+  private readonly additionalUrlParamsInit?: URLSearchParams;
+  private readonly additionalUrlParamsRun?: URLSearchParams;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.endpoint = options.endpoint;
@@ -23,8 +23,8 @@ export class SparqlBenchmarkRunner {
     this.timestampsRecording = options.timestampsRecording;
     this.logger = options.logger;
     this.upQuery = options.upQuery || 'SELECT * WHERE { ?s ?p ?o } LIMIT 1';
-
-    this.fetcher = new SparqlEndpointFetcher();
+    this.additionalUrlParamsInit = options.additionalUrlParamsInit;
+    this.additionalUrlParamsRun = options.additionalUrlParamsRun;
   }
 
   /**
@@ -109,7 +109,10 @@ export class SparqlBenchmarkRunner {
    * @param query A SPARQL query string
    */
   public async executeQuery(query: string): Promise<{ count: number; time: number; timestamps: number[] }> {
-    const results = await this.fetcher.fetchBindings(this.endpoint, query);
+    const fetcher = new SparqlEndpointFetcher({
+      additionalUrlParams: this.additionalUrlParamsRun,
+    });
+    const results = await fetcher.fetchBindings(this.endpoint, query);
     return new Promise((resolve, reject) => {
       const hrstart = process.hrtime();
       let count = 0;
@@ -141,7 +144,10 @@ export class SparqlBenchmarkRunner {
    */
   public async isUp(): Promise<boolean> {
     try {
-      const results = await this.fetcher.fetchBindings(this.endpoint, this.upQuery);
+      const fetcher = new SparqlEndpointFetcher({
+        additionalUrlParams: this.additionalUrlParamsInit,
+      });
+      const results = await fetcher.fetchBindings(this.endpoint, this.upQuery);
       return new Promise<boolean>(resolve => {
         results.on('error', () => resolve(false));
         results.on('data', () => {
@@ -213,6 +219,14 @@ export interface ISparqlBenchmarkRunnerArgs {
    * SPARQL SELECT query that will be sent to the endpoint to check if it is up.
    */
   upQuery?: string;
+  /**
+   * Additional URL parameters that must be sent to the endpoint when checking if the endpoint is up.
+   */
+  additionalUrlParamsInit?: URLSearchParams;
+  /**
+   * Additional URL parameters that must be sent to the endpoint during actual query execution.
+   */
+  additionalUrlParamsRun?: URLSearchParams;
 }
 
 export interface IRunOptions {
