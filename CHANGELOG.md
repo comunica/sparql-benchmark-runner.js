@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.6.0"></a>
+## [v2.6.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.5.0...v2.6.0) - 2022-07-14
+
+### Added
+* [Allow additional URL parameters to be passed to endpoints](https://github.com/comunica/sparql-benchmark-runner.js/commit/77a578990eaa6a4e7b0c6bd8714b9a55bde4a439)
+
 <a name="v2.5.0"></a>
 ## [v2.5.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.4.0...v2.5.0) - 2022-07-13
 
