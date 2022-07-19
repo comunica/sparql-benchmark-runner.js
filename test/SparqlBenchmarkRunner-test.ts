@@ -279,6 +279,72 @@ describe('SparqlBenchmarkRunner', () => {
       expect(logger).toHaveBeenCalledWith(`\rError occurred at query a:0 for iteration 1/1: Dummy error in first fetchBindings call\n`);
       expect(setTimeout).toHaveBeenCalled();
     });
+
+    it('logs error for throwing query in stream and mark it as errored', async() => {
+      (<any> global).setTimeout = jest.fn((cb: any) => cb());
+
+      let called = false;
+      fetcher.fetchBindings = jest.fn(async() => {
+        if (!called) {
+          called = true;
+          const readable = new Readable();
+          readable._read = () => {
+            readable.emit('data', 'a');
+            readable.emit('data', 'b');
+            readable.emit('error', new Error(`Dummy error in first fetchBindings call`));
+          };
+          return readable;
+        }
+        return streamifyArray([ 'a', 'b', 'c' ]);
+      });
+
+      const results = {};
+      await runner.executeQueries(results, 1);
+
+      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(5);
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q1');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q2');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
+      expect(results).toEqual({
+        a0: { count: 2, error: true, id: '0', name: 'a', time: 1, timestamps: []},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 3, timestamps: []},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 5, timestamps: []},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 7, timestamps: []},
+      });
+
+      expect(logger).toHaveBeenCalledWith(`\rError occurred at query a:0 for iteration 1/1: Dummy error in first fetchBindings call\n`);
+      expect(setTimeout).toHaveBeenCalled();
+    });
+
+    it('logs error for throwing query in multiple iterations and mark it as errored', async() => {
+      (<any> global).setTimeout = jest.fn((cb: any) => cb());
+
+      fetcher.fetchBindings = jest.fn(async(endpoint: string, query: string) => {
+        if (query === querySets.a[0]) {
+          throw new Error(`Dummy error in first fetchBindings call`);
+        }
+        return streamifyArray([ 'a', 'b', 'c' ]);
+      });
+
+      const results = {};
+      await runner.executeQueries(results, 2);
+
+      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(10);
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q1');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q2');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
+      expect(results).toEqual({
+        a0: { count: 0, error: true, id: '0', name: 'a', time: 0, timestamps: []},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 8, timestamps: []},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 12, timestamps: []},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 16, timestamps: []},
+      });
+
+      expect(logger).toHaveBeenCalledWith(`\rError occurred at query a:0 for iteration 1/2: Dummy error in first fetchBindings call\n`);
+      expect(setTimeout).toHaveBeenCalled();
+    });
   });
 
   describe('executeQuery', () => {

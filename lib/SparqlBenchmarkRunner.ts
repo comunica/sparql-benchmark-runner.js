@@ -74,25 +74,47 @@ export class SparqlBenchmarkRunner {
         for (const id in test) {
           this.log(`\rExecuting query ${name}:${id} for iteration ${iteration + 1}/${iterations}`);
           const query = test[id];
+          let count: number;
+          let time: number;
+          let timestamps: number[];
+          let errorObject: Error | undefined;
+
+          // Execute query, and catch errors
           try {
-            const { count, time, timestamps } = await this.executeQuery(query);
-            if (!data[name + id]) {
-              data[name + id] = { name, id, count, time, timestamps, error: false };
-            } else {
-              data[name + id].time += time;
-              const dataEntry = data[name + id];
-
-              // Combine timestamps
-              const length = Math.min(dataEntry.timestamps.length, timestamps.length);
-              for (let i = 0; i < length; ++i) {
-                dataEntry.timestamps[i] += timestamps[i];
-              }
-            }
+            ({ count, time, timestamps } = await this.executeQuery(query));
           } catch (error: unknown) {
-            // Mark result as errored
-            data[name + id] = { name, id, count: 0, time: 0, timestamps: [], error: true };
+            errorObject = <Error> error;
+            if ('partialOutput' in <any> errorObject) {
+              ({ count, time, timestamps } = (<any>errorObject).partialOutput);
+            } else {
+              count = 0;
+              time = 0;
+              timestamps = [];
+            }
+          }
 
-            this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${(<Error> error).message}\n`);
+          // Store results
+          if (!data[name + id]) {
+            data[name + id] = { name, id, count, time, timestamps, error: Boolean(errorObject) };
+          } else {
+            const dataEntry = data[name + id];
+
+            if (errorObject) {
+              dataEntry.error = true;
+            }
+
+            dataEntry.time += time;
+
+            // Combine timestamps
+            const length = Math.min(dataEntry.timestamps.length, timestamps.length);
+            for (let i = 0; i < length; ++i) {
+              dataEntry.timestamps[i] += timestamps[i];
+            }
+          }
+
+          // Delay if error
+          if (errorObject) {
+            this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${errorObject.message}\n`);
 
             // Wait until the endpoint is properly live again
             await new Promise(resolve => setTimeout(resolve, 3_000));
@@ -123,7 +145,14 @@ export class SparqlBenchmarkRunner {
           timestamps.push(this.countTime(hrstart));
         }
       });
-      results.on('error', reject);
+      results.on('error', (error: any) => {
+        error.partialOutput = {
+          count,
+          time: this.countTime(hrstart),
+          timestamps,
+        };
+        reject(error);
+      });
       results.on('end', () => {
         resolve({ count, time: this.countTime(hrstart), timestamps });
       });
