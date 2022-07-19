@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.7.0"></a>
+## [v2.7.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.6.0...v2.7.0) - 2022-07-19
+
+### Changed
+* [Allow partial results to be stored after query error](https://github.com/comunica/sparql-benchmark-runner.js/commit/0c7197f44cc96b7c016b14ec4349bc54c967cc3a)
+
 <a name="v2.6.0"></a>
 ## [v2.6.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.5.0...v2.6.0) - 2022-07-14
 
