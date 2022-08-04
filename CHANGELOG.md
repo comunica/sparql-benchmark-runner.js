@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.8.1"></a>
+## [v2.8.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.8.0...v2.8.1) - 2022-08-04
+
+### Fixed
+* [Fix metadata not being accumulated](https://github.com/comunica/sparql-benchmark-runner.js/commit/3ed192dfb5e640fe12814d5beaf0ab151594cfde)
+
 <a name="v2.8.0"></a>
 ## [v2.8.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.7.0...v2.8.0) - 2022-08-04
 
