@@ -62,6 +62,7 @@ describe('BenchmarkInputOutput', () => {
             name: 'a',
             time: 25,
             timestamps: [],
+            metadata: {},
           },
           a1: {
             count: 3,
@@ -70,6 +71,7 @@ describe('BenchmarkInputOutput', () => {
             name: 'a',
             time: 27,
             timestamps: [],
+            metadata: {},
           },
           b0: {
             count: 3,
@@ -78,6 +80,7 @@ describe('BenchmarkInputOutput', () => {
             name: 'b',
             time: 29,
             timestamps: [],
+            metadata: {},
           },
           b1: {
             count: 3,
@@ -86,6 +89,7 @@ describe('BenchmarkInputOutput', () => {
             name: 'b',
             time: 31,
             timestamps: [],
+            metadata: {},
           },
         },
         'output.csv',
@@ -115,6 +119,7 @@ describe('BenchmarkInputOutput', () => {
               62,
               63,
             ],
+            metadata: {},
           },
           a1: {
             count: 3,
@@ -127,6 +132,7 @@ describe('BenchmarkInputOutput', () => {
               67,
               68,
             ],
+            metadata: {},
           },
           b0: {
             count: 3,
@@ -139,6 +145,7 @@ describe('BenchmarkInputOutput', () => {
               72,
               73,
             ],
+            metadata: {},
           },
           b1: {
             count: 3,
@@ -151,6 +158,7 @@ describe('BenchmarkInputOutput', () => {
               77,
               78,
             ],
+            metadata: {},
           },
         },
         'output.csv',
@@ -163,6 +171,92 @@ describe('BenchmarkInputOutput', () => {
       expect(lineWriter).toHaveBeenCalledWith('a;1;3;69;false;66 67 68\n');
       expect(lineWriter).toHaveBeenCalledWith('b;0;3;74;false;71 72 73\n');
       expect(lineWriter).toHaveBeenCalledWith('b;1;3;79;false;76 77 78\n');
+      expect(lineEnder).toHaveBeenCalled();
+    });
+
+    it('writes a CSV file with recordings and metadata keys', async() => {
+      await writeBenchmarkResults(
+        {
+          a0: {
+            count: 3,
+            error: false,
+            id: '0',
+            name: 'a',
+            time: 64,
+            timestamps: [
+              61,
+              62,
+              63,
+            ],
+            metadata: {
+              keyA: '1.1',
+              keyB: '2.1',
+              keyC: '3.1',
+            },
+          },
+          a1: {
+            count: 3,
+            error: false,
+            id: '1',
+            name: 'a',
+            time: 69,
+            timestamps: [
+              66,
+              67,
+              68,
+            ],
+            metadata: {
+              keyA: '1.2',
+              keyB: '2.2',
+              keyC: '3.2',
+            },
+          },
+          b0: {
+            count: 3,
+            error: false,
+            id: '0',
+            name: 'b',
+            time: 74,
+            timestamps: [
+              71,
+              72,
+              73,
+            ],
+            metadata: {
+              keyA: '1.3',
+              keyB: '2.3',
+              keyC: '3.3',
+            },
+          },
+          b1: {
+            count: 3,
+            error: false,
+            id: '1',
+            name: 'b',
+            time: 79,
+            timestamps: [
+              76,
+              77,
+              78,
+            ],
+            metadata: {
+              keyA: '1.4',
+              keyB: '2.4',
+              keyC: '3.4',
+            },
+          },
+        },
+        'output.csv',
+        true,
+        [ 'keyA', 'keyB' ],
+      );
+
+      expect(lineWriter).toHaveBeenCalledTimes(5);
+      expect(lineWriter).toHaveBeenCalledWith('name;id;results;time;error;timestamps;keyA;keyB\n');
+      expect(lineWriter).toHaveBeenCalledWith('a;0;3;64;false;61 62 63;1.1;2.1\n');
+      expect(lineWriter).toHaveBeenCalledWith('a;1;3;69;false;66 67 68;1.2;2.2\n');
+      expect(lineWriter).toHaveBeenCalledWith('b;0;3;74;false;71 72 73;1.3;2.3\n');
+      expect(lineWriter).toHaveBeenCalledWith('b;1;3;79;false;76 77 78;1.4;2.4\n');
       expect(lineEnder).toHaveBeenCalled();
     });
   });

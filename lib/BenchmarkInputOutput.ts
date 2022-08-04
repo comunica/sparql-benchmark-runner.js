@@ -30,17 +30,25 @@ export async function readQueries(queryDirectory: string): Promise<Record<string
  * @param results Benchmark results.
  * @param outputFile Destination CSV file path.
  * @param timestampsRecording If timestamps were recorded during benchmarking.
+ * @param metadataKeys The keys inside the metadata to emit. These will also be added to the CSV file header.
  */
 export async function writeBenchmarkResults(
   results: IBenchmarkResults,
   outputFile: string,
   timestampsRecording: boolean,
+  metadataKeys: string[] = [],
 ): Promise<void> {
   const out = fs.createWriteStream(outputFile);
-  out.write(`name;id;results;time;error${timestampsRecording ? ';timestamps' : ''}\n`);
+  out.write(`name;id;results;time;error${timestampsRecording ? ';timestamps' : ''}${metadataKeys.length > 0 ? `;${metadataKeys.join(';')}` : ''}\n`);
   for (const key in results) {
-    const { name, id, count, time, error, timestamps } = results[key];
-    out.write(`${name};${id};${count};${time};${error}${timestampsRecording ? `;${timestamps.join(' ')}` : ''}\n`);
+    const { name, id, count, time, error, timestamps, metadata } = results[key];
+    out.write(`${name};${id};${count};${time};${error}${
+      timestampsRecording ?
+        `;${timestamps.join(' ')}` :
+        ''}${
+      metadataKeys.length > 0 ?
+        `;${metadataKeys.map(metadataKey => metadata[metadataKey]).join(';')}` :
+        ''}\n`);
   }
   out.end();
 }

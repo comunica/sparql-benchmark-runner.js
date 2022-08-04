@@ -14,4 +14,5 @@ export interface IBenchmarkResult {
   time: number;
   timestamps: number[];
   error: boolean;
+  metadata: Record<string, any>;
 }

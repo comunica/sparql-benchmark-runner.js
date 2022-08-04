@@ -95,7 +95,7 @@ export class SparqlBenchmarkRunner {
 
           // Store results
           if (!data[name + id]) {
-            data[name + id] = { name, id, count, time, timestamps, error: Boolean(errorObject) };
+            data[name + id] = { name, id, count, time, timestamps, error: Boolean(errorObject), metadata: {}};
           } else {
             const dataEntry = data[name + id];
 
@@ -130,7 +130,9 @@ export class SparqlBenchmarkRunner {
    * Execute a single query
    * @param query A SPARQL query string
    */
-  public async executeQuery(query: string): Promise<{ count: number; time: number; timestamps: number[] }> {
+  public async executeQuery(query: string): Promise<{
+    count: number; time: number; timestamps: number[]; metadata: Record<string, any>;
+  }> {
     const fetcher = new SparqlEndpointFetcher({
       additionalUrlParams: this.additionalUrlParamsRun,
     });
@@ -139,6 +141,10 @@ export class SparqlBenchmarkRunner {
       const hrstart = process.hrtime();
       let count = 0;
       const timestamps: number[] = [];
+      let metadata: Record<string, any> = {};
+      results.on('metadata', (readMetadata: any) => {
+        metadata = readMetadata;
+      });
       results.on('data', () => {
         count++;
         if (this.timestampsRecording) {
@@ -154,7 +160,7 @@ export class SparqlBenchmarkRunner {
         reject(error);
       });
       results.on('end', () => {
-        resolve({ count, time: this.countTime(hrstart), timestamps });
+        resolve({ count, time: this.countTime(hrstart), timestamps, metadata });
       });
     });
   }
