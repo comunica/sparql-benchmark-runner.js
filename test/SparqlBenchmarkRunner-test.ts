@@ -257,6 +257,31 @@ describe('SparqlBenchmarkRunner', () => {
       });
     });
 
+    it('handles valid queries for multiple rounds with metadata', async() => {
+      fetcher.fetchBindings = jest.fn(async() => {
+        const stream = streamifyArray([ 'a', 'b', 'c' ]);
+        stream.on('newListener', () => {
+          stream.emit('metadata', { httpRequests: 10 });
+        });
+        return stream;
+      });
+
+      const results = {};
+      await runner.executeQueries(results, 3);
+
+      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(12);
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q1');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q2');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q3');
+      expect(fetcher.fetchBindings).toHaveBeenCalledWith('http://example.org/sparql', 'Q4');
+      expect(results).toEqual({
+        a0: { count: 3, error: false, id: '0', name: 'a', time: 27, timestamps: [], metadata: { httpRequests: 10 }},
+        a1: { count: 3, error: false, id: '1', name: 'a', time: 33, timestamps: [], metadata: { httpRequests: 10 }},
+        b0: { count: 3, error: false, id: '0', name: 'b', time: 39, timestamps: [], metadata: { httpRequests: 10 }},
+        b1: { count: 3, error: false, id: '1', name: 'b', time: 45, timestamps: [], metadata: { httpRequests: 10 }},
+      });
+    });
+
     it('logs error for throwing query and mark it as errored', async() => {
       (<any> global).setTimeout = jest.fn((cb: any) => cb());
 

@@ -77,25 +77,27 @@ export class SparqlBenchmarkRunner {
           let count: number;
           let time: number;
           let timestamps: number[];
+          let metadata: Record<string, any>;
           let errorObject: Error | undefined;
 
           // Execute query, and catch errors
           try {
-            ({ count, time, timestamps } = await this.executeQuery(query));
+            ({ count, time, timestamps, metadata } = await this.executeQuery(query));
           } catch (error: unknown) {
             errorObject = <Error> error;
             if ('partialOutput' in <any> errorObject) {
-              ({ count, time, timestamps } = (<any>errorObject).partialOutput);
+              ({ count, time, timestamps, metadata } = (<any>errorObject).partialOutput);
             } else {
               count = 0;
               time = 0;
               timestamps = [];
+              metadata = {};
             }
           }
 
           // Store results
           if (!data[name + id]) {
-            data[name + id] = { name, id, count, time, timestamps, error: Boolean(errorObject), metadata: {}};
+            data[name + id] = { name, id, count, time, timestamps, error: Boolean(errorObject), metadata };
           } else {
             const dataEntry = data[name + id];
 
@@ -156,6 +158,7 @@ export class SparqlBenchmarkRunner {
           count,
           time: this.countTime(hrstart),
           timestamps,
+          metadata,
         };
         reject(error);
       });
