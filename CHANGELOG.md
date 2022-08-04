@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.8.0"></a>
+## [v2.8.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.7.0...v2.8.0) - 2022-08-04
+
+### Added
+* [Handle and serialize metadata from query executions](https://github.com/comunica/sparql-benchmark-runner.js/commit/370f3ed611b2389cc4869d733c1daeb91f84a805)
+
 <a name="v2.7.0"></a>
 ## [v2.7.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.6.0...v2.7.0) - 2022-07-19
 
