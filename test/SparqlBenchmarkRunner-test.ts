@@ -285,7 +285,7 @@ describe('SparqlBenchmarkRunner', () => {
     });
 
     it('logs error for throwing query and mark it as errored', async() => {
-      (<any> global).setTimeout = jest.fn((cb: any) => cb());
+      (<any> runner).sleep = jest.fn(() => Promise.resolve(true));
 
       let called = false;
       fetcher.fetchBindings = jest.fn(async() => {
@@ -316,7 +316,7 @@ describe('SparqlBenchmarkRunner', () => {
     });
 
     it('logs error for throwing query in stream and mark it as errored', async() => {
-      (<any> global).setTimeout = jest.fn((cb: any) => cb());
+      (<any> runner).sleep = jest.fn(() => Promise.resolve(true));
 
       let called = false;
       fetcher.fetchBindings = jest.fn(async() => {
@@ -353,7 +353,7 @@ describe('SparqlBenchmarkRunner', () => {
     });
 
     it('logs error for throwing query in multiple iterations and mark it as errored', async() => {
-      (<any> global).setTimeout = jest.fn((cb: any) => cb());
+      (<any> runner).sleep = jest.fn(() => Promise.resolve(true));
 
       fetcher.fetchBindings = jest.fn(async(endpoint: string, query: string) => {
         if (query === querySets.a[0]) {
@@ -513,6 +513,22 @@ describe('SparqlBenchmarkRunner', () => {
 
     it('returns false for a rejecting fetchBindings promise', async() => {
       fetcher.fetchBindings = jest.fn(() => Promise.reject(new Error('SparqlBenchmarkRunner test reject')));
+      expect(await runner.isUp()).toBeFalsy();
+    });
+
+    it('returns false for a hanging request', async() => {
+      fetcher.fetchBindings = jest.fn(async() => {
+        const readable = new Readable();
+        readable._read = () => {
+          // Do nothing
+        };
+        return readable;
+      });
+
+      setImmediate(() => {
+        jest.runAllTimers();
+      });
+
       expect(await runner.isUp()).toBeFalsy();
     });
   });

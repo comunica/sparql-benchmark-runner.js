@@ -121,7 +121,7 @@ export class SparqlBenchmarkRunner {
             this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${errorObject.message}\n`);
 
             // Wait until the endpoint is properly live again
-            await new Promise(resolve => setTimeout(resolve, 3_000));
+            await this.sleep(3_000);
             await this.waitUntilUp();
           }
         }
@@ -200,14 +200,25 @@ export class SparqlBenchmarkRunner {
       const fetcher = new SparqlEndpointFetcher({
         additionalUrlParams: this.additionalUrlParamsInit,
       });
+      let timeoutHandle: NodeJS.Timeout | undefined;
+      const promiseTimeout = new Promise<boolean>(resolve => {
+        timeoutHandle = <any> setTimeout(() => resolve(false), 10_000);
+      });
       const results = await fetcher.fetchBindings(this.endpoint, this.upQuery);
-      return new Promise<boolean>(resolve => {
-        results.on('error', () => resolve(false));
+      const promiseFetch = new Promise<boolean>(resolve => {
+        results.on('error', () => {
+          clearTimeout(timeoutHandle);
+          resolve(false);
+        });
         results.on('data', () => {
           // Do nothing
         });
-        results.on('end', () => resolve(true));
+        results.on('end', () => {
+          clearTimeout(timeoutHandle);
+          resolve(true);
+        });
       });
+      return Promise.race([ promiseTimeout, promiseFetch ]);
     } catch {
       return false;
     }
