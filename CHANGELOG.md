@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.9.0"></a>
+## [v2.9.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.8.2...v2.9.0) - 2023-02-06
+
+### Added
+* [Allow fallback timeout to be configured](https://github.com/comunica/sparql-benchmark-runner.js/commit/3e8caea5277193df714df2ca6dc70bcf37f09eac)
+
 <a name="v2.8.2"></a>
 ## [v2.8.2](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.8.1...v2.8.2) - 2022-11-09
 
