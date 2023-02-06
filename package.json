@@ -1,6 +1,6 @@
 {
   "name": "sparql-benchmark-runner",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "description": "Executes a query set against a given SPARQL endpoint",
   "repository": "https://github.com/comunica/sparql-benchmark-runner.js",
   "keywords": [

@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.9.2"></a>
+## [v2.9.2](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.1...v2.9.2) - 2023-02-06
+
+### Fixed
+* [Apply a default timeout on isUp check for slow fetchBindings](https://github.com/comunica/sparql-benchmark-runner.js/commit/6139b8396cddae05a4a9c90b31330b6d6de60f98)
+
 <a name="v2.9.1"></a>
 ## [v2.9.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.0...v2.9.1) - 2023-02-06
 
