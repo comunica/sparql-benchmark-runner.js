@@ -147,39 +147,39 @@ export class SparqlBenchmarkRunner {
         timeoutHandle = <any> setTimeout(() => reject(new Error('Timeout for running query')), this.timeout);
       });
     }
-    const results = await fetcher.fetchBindings(this.endpoint, query);
-    const promiseFetch = new Promise<{
-      count: number; time: number; timestamps: number[]; metadata: Record<string, any>;
-    }>((resolve, reject) => {
-      const hrstart = process.hrtime();
-      let count = 0;
-      const timestamps: number[] = [];
-      let metadata: Record<string, any> = {};
-      results.on('metadata', (readMetadata: any) => {
-        metadata = readMetadata;
-      });
-      results.on('data', () => {
-        count++;
-        if (this.timestampsRecording) {
-          timestamps.push(this.countTime(hrstart));
-        }
-      });
-      results.on('error', (error: any) => {
-        error.partialOutput = {
-          count,
-          time: this.countTime(hrstart),
-          timestamps,
-          metadata,
-        };
-        reject(error);
-      });
-      results.on('end', () => {
-        if (timeoutHandle) {
-          clearTimeout(timeoutHandle);
-        }
-        resolve({ count, time: this.countTime(hrstart), timestamps, metadata });
-      });
-    });
+    const promiseFetch = fetcher.fetchBindings(this.endpoint, query)
+      .then(results => new Promise<{
+        count: number; time: number; timestamps: number[]; metadata: Record<string, any>;
+      }>((resolve, reject) => {
+        const hrstart = process.hrtime();
+        let count = 0;
+        const timestamps: number[] = [];
+        let metadata: Record<string, any> = {};
+        results.on('metadata', (readMetadata: any) => {
+          metadata = readMetadata;
+        });
+        results.on('data', () => {
+          count++;
+          if (this.timestampsRecording) {
+            timestamps.push(this.countTime(hrstart));
+          }
+        });
+        results.on('error', (error: any) => {
+          error.partialOutput = {
+            count,
+            time: this.countTime(hrstart),
+            timestamps,
+            metadata,
+          };
+          reject(error);
+        });
+        results.on('end', () => {
+          if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+          }
+          resolve({ count, time: this.countTime(hrstart), timestamps, metadata });
+        });
+      }));
     return promiseTimeout ? Promise.race([ promiseTimeout, promiseFetch ]) : promiseFetch;
   }
 
