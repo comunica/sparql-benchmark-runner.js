@@ -14,6 +14,7 @@ export class SparqlBenchmarkRunner {
   private readonly upQuery: string;
   private readonly additionalUrlParamsInit?: URLSearchParams;
   private readonly additionalUrlParamsRun?: URLSearchParams;
+  private readonly timeout?: number;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.endpoint = options.endpoint;
@@ -25,6 +26,7 @@ export class SparqlBenchmarkRunner {
     this.upQuery = options.upQuery || 'SELECT * WHERE { ?s ?p ?o } LIMIT 1';
     this.additionalUrlParamsInit = options.additionalUrlParamsInit;
     this.additionalUrlParamsRun = options.additionalUrlParamsRun;
+    this.timeout = options.timeout;
   }
 
   /**
@@ -138,8 +140,17 @@ export class SparqlBenchmarkRunner {
     const fetcher = new SparqlEndpointFetcher({
       additionalUrlParams: this.additionalUrlParamsRun,
     });
+    let promiseTimeout: Promise<any> | undefined;
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    if (this.timeout) {
+      promiseTimeout = new Promise((resolve, reject) => {
+        timeoutHandle = <any> setTimeout(() => reject(new Error('Timeout for running query')), this.timeout);
+      });
+    }
     const results = await fetcher.fetchBindings(this.endpoint, query);
-    return new Promise((resolve, reject) => {
+    const promiseFetch = new Promise<{
+      count: number; time: number; timestamps: number[]; metadata: Record<string, any>;
+    }>((resolve, reject) => {
       const hrstart = process.hrtime();
       let count = 0;
       const timestamps: number[] = [];
@@ -163,9 +174,13 @@ export class SparqlBenchmarkRunner {
         reject(error);
       });
       results.on('end', () => {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
         resolve({ count, time: this.countTime(hrstart), timestamps, metadata });
       });
     });
+    return promiseTimeout ? Promise.race([ promiseTimeout, promiseFetch ]) : promiseFetch;
   }
 
   /**
@@ -265,6 +280,15 @@ export interface ISparqlBenchmarkRunnerArgs {
    * Additional URL parameters that must be sent to the endpoint during actual query execution.
    */
   additionalUrlParamsRun?: URLSearchParams;
+  /**
+   * A timeout for query execution in milliseconds.
+   *
+   * If the timeout is reached, the query request will NOT be aborted.
+   * Instead, the query is assumed to have silently failed.
+   *
+   * This timeout is only supposed to be used as a fallback to an endpoint-driven timeout.
+   */
+  timeout?: number;
 }
 
 export interface IRunOptions {

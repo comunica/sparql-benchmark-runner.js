@@ -7,6 +7,8 @@ jest.mock('fetch-sparql-endpoint', () => ({
   SparqlEndpointFetcher: jest.fn().mockImplementation(() => fetcher),
 }));
 
+jest.useFakeTimers();
+
 describe('SparqlBenchmarkRunner', () => {
   let runner: SparqlBenchmarkRunner;
   let querySets: Record<string, string[]>;
@@ -438,6 +440,51 @@ describe('SparqlBenchmarkRunner', () => {
         timestamps: [],
         metadata: { httpRequests: 10 },
       });
+    });
+
+    it('handles a valid query when a timeout was configured', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint: 'http://example.org/sparql',
+        querySets,
+        replication: 3,
+        warmup: 2,
+        timestampsRecording: false,
+        timeout: 10_000,
+        logger,
+      });
+
+      expect(await runner.executeQuery('Q')).toEqual({
+        count: 3,
+        time: 1,
+        metadata: {},
+        timestamps: [],
+      });
+    });
+
+    it('throws on a hanging query when a timeout was configured', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint: 'http://example.org/sparql',
+        querySets,
+        replication: 3,
+        warmup: 2,
+        timestampsRecording: false,
+        timeout: 10_000,
+        logger,
+      });
+
+      fetcher.fetchBindings = jest.fn(async() => {
+        const readable = new Readable();
+        readable._read = () => {
+          // Do nothing
+        };
+        return readable;
+      });
+
+      setImmediate(() => {
+        jest.runAllTimers();
+      });
+
+      await expect(runner.executeQuery('Q')).rejects.toThrow('Timeout for running query');
     });
   });
 
