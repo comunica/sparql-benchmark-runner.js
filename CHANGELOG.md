@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.9.3"></a>
+## [v2.9.3](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.2...v2.9.3) - 2023-02-09
+
+### Fixed
+* [Update fetch-sparql-endpoint to 3.2.1 with timeout fix](https://github.com/comunica/sparql-benchmark-runner.js/commit/943a47d4d31bc9b146b4c538cf5f6e8cff034e72)
+
 <a name="v2.9.2"></a>
 ## [v2.9.2](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.1...v2.9.2) - 2023-02-06
 
