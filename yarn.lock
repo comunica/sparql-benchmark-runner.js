@@ -2568,10 +2568,10 @@ fb-watchman@^2.0.0:
   dependencies:
     bser "2.1.1"
 
-fetch-sparql-endpoint@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/fetch-sparql-endpoint/-/fetch-sparql-endpoint-3.1.0.tgz#531c60fa1ce14960cdfe53cf8d3f4f5f5c971827"
-  integrity sha512-NS0+84W4nMK6/2VxJC5jQhPKPfUI31zXswgJ9TpHzp4BzQLPeu2ksgvZ4NffhyQ86JrDx2bfq4xAS3yxhmwyHQ==
+fetch-sparql-endpoint@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fetch-sparql-endpoint/-/fetch-sparql-endpoint-3.2.1.tgz#6202dc7ac119bad4b2f9b2b1d208e2dcb08ff896"
+  integrity sha512-RPq/OYBHrNvCKAtjlxDu3uBHsKBlKOkwqzbQldHAUYp0ZZ/UxWWOzNKgq8zKsY4/1sW6Qlju7MHX7KdK5WP0lg==
   dependencies:
     "@rdfjs/types" "*"
     "@types/readable-stream" "^2.3.11"
