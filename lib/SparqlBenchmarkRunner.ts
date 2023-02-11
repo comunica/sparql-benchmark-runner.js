@@ -195,17 +195,16 @@ export class SparqlBenchmarkRunner {
   /**
    * Check if the SPARQL endpoint is available.
    */
-  public async isUp(): Promise<boolean> {
-    try {
-      const fetcher = new SparqlEndpointFetcher({
-        additionalUrlParams: this.additionalUrlParamsInit,
-      });
-      let timeoutHandle: NodeJS.Timeout | undefined;
-      const promiseTimeout = new Promise<boolean>(resolve => {
-        timeoutHandle = <any> setTimeout(() => resolve(false), 10_000);
-      });
-      const results = await fetcher.fetchBindings(this.endpoint, this.upQuery);
-      const promiseFetch = new Promise<boolean>(resolve => {
+  public isUp(): Promise<boolean> {
+    const fetcher = new SparqlEndpointFetcher({
+      additionalUrlParams: this.additionalUrlParamsInit,
+    });
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    const promiseTimeout = new Promise<boolean>(resolve => {
+      timeoutHandle = <any> setTimeout(() => resolve(false), 10_000);
+    });
+    const promiseFetch = fetcher.fetchBindings(this.endpoint, this.upQuery)
+      .then(results => new Promise<boolean>(resolve => {
         results.on('error', () => {
           clearTimeout(timeoutHandle);
           resolve(false);
@@ -217,11 +216,9 @@ export class SparqlBenchmarkRunner {
           clearTimeout(timeoutHandle);
           resolve(true);
         });
-      });
-      return Promise.race([ promiseTimeout, promiseFetch ]);
-    } catch {
-      return false;
-    }
+      }));
+    return Promise.race([ promiseTimeout, promiseFetch ])
+      .catch(() => false);
   }
 
   /**
