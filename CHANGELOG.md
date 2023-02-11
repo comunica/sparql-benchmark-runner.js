@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.9.4"></a>
+## [v2.9.4](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.3...v2.9.4) - 2023-02-11
+
+### Fixed
+* [Fix isUp timeout not being applied](https://github.com/comunica/sparql-benchmark-runner.js/commit/f927bfecc5f6f74fcfb4086dde3067e47241d4d0)
+
 <a name="v2.9.3"></a>
 ## [v2.9.3](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.2...v2.9.3) - 2023-02-09
 
