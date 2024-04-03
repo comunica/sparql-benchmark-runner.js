@@ -10,9 +10,10 @@ COPY lib/ ./lib/
 COPY index.ts .
 COPY package.json .
 COPY tsconfig.json .
+COPY yarn.lock .
 
 ## Install and build the lib
-RUN npm install
+RUN yarn install --frozen-lockfile
 
 
 # Runtime stage
@@ -22,12 +23,13 @@ FROM node:lts-alpine
 WORKDIR /sparql-benchmark-runner
 
 ## Copy runtime files from build stage
+COPY --from=build /sparql-benchmark-runner/yarn.lock .
 COPY --from=build /sparql-benchmark-runner/package.json .
 COPY --from=build /sparql-benchmark-runner/bin ./bin
 COPY --from=build /sparql-benchmark-runner/lib ./lib
 
 # Install the node module
-RUN npm install --only=production
+RUN yarn install --frozen-lockfile --production
 
 # Run base binary
 ENTRYPOINT ["node", "./bin/sparql-benchmark-runner"]
