@@ -1,6 +1,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { type IQueryLoader, QueryLoader } from '../lib/QueryLoader';
+import type { IQueryLoader } from '../lib/QueryLoader';
+import { QueryLoaderFile } from '../lib/QueryLoaderFile';
 import type { IAggregateResult } from '../lib/Result';
 import type { IResultSerializer } from '../lib/ResultSerializer';
 import { ResultSerializerCsv } from '../lib/ResultSerializerCsv';
@@ -9,7 +10,7 @@ import { SparqlBenchmarkRunner } from '../lib/SparqlBenchmarkRunner';
 const logger = (message: string): boolean => process.stdout.write(`[${new Date().toISOString()}] ${message}\n`);
 
 async function loadQueries(path: string): Promise<Record<string, string[]>> {
-  const loader: IQueryLoader = new QueryLoader(path);
+  const loader: IQueryLoader = new QueryLoaderFile(path);
   logger(`Loading queries from ${path}`);
   return await loader.loadQueries();
 }

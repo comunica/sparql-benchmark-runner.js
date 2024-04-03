@@ -1,4 +1,5 @@
 export * from './QueryLoader';
+export * from './QueryLoaderFile';
 export * from './Result';
 export * from './ResultAggregator';
 export * from './ResultAggregatorComunica';

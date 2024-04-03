@@ -1,7 +1,8 @@
 import type { Dirent } from 'node:fs';
 import type * as fsPromises from 'node:fs/promises';
 import { join } from 'node:path';
-import { QueryLoader } from '../lib/QueryLoader';
+import type { IQueryLoader } from '../lib/QueryLoader';
+import { QueryLoaderFile } from '../lib/QueryLoaderFile';
 
 const queryFilesPath = '/tmp/queries';
 
@@ -35,10 +36,10 @@ jest.mock<typeof fsPromises>('node:fs/promises', () => <typeof fsPromises> <unkn
 }));
 
 describe('QueryLoader', () => {
-  let loader: QueryLoader;
+  let loader: IQueryLoader;
 
   beforeEach(() => {
-    loader = new QueryLoader(queryFilesPath);
+    loader = new QueryLoaderFile(queryFilesPath);
   });
 
   it('should load all queries', async() => {
