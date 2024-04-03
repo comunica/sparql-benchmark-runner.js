@@ -1,6 +1,8 @@
-node_modules
+.husky/_
 .idea
+.yarn
 lerna-debug.log
+node_modules
 yarn-error.log
 **/lib/**/*.js
 **/lib/**/*.js.map
@@ -11,11 +13,8 @@ yarn-error.log
 **/bin/**/*.js
 **/bin/**/*.js.map
 **/bin/**/*.d.ts
-**/index.js
-**/index.js.map
-**/index.d.ts
 coverage
 documentation
 .eslintcache
-queries
-output.csv
+queries*
+output*.csv
