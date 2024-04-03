@@ -1,5 +1,5 @@
 # Build stage
-FROM node:lts AS build
+FROM node:lts
 
 ## Set current working directory
 WORKDIR /sparql-benchmark-runner
@@ -7,30 +7,16 @@ WORKDIR /sparql-benchmark-runner
 ## Copy all files
 COPY bin/ ./bin/
 COPY lib/ ./lib/
-COPY index.ts .
 COPY package.json .
 COPY tsconfig.json .
+COPY .yarnrc.yml .
+COPY yarn.lock .
 
 ## Install and build the lib
-RUN npm install
-
-
-# Runtime stage
-FROM node:lts-alpine
-
-## Set current working directory
-WORKDIR /sparql-benchmark-runner
-
-## Copy runtime files from build stage
-COPY --from=build /sparql-benchmark-runner/package.json .
-COPY --from=build /sparql-benchmark-runner/bin ./bin
-COPY --from=build /sparql-benchmark-runner/lib ./lib
-
-# Install the node module
-RUN npm install --only=production
+RUN corepack enable && yarn install --immutable && yarn build
 
 # Run base binary
-ENTRYPOINT ["node", "./bin/sparql-benchmark-runner"]
+ENTRYPOINT ["node", "./bin/sparql-benchmark-runner.js"]
 
 # Default command
 CMD ["--help"]
