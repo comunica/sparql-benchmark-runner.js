@@ -16,8 +16,8 @@
     "url": "https://github.com/comunica/sparql-benchmark-runner.js/issues"
   },
   "homepage": "https://github.com/comunica/sparql-benchmark-runner.js#readme",
-  "main": "index.js",
-  "typings": "index",
+  "main": "lib/index.js",
+  "typings": "lib/index",
   "files": [
     "bin/**/*.d.ts",
     "bin/**/*.js",
@@ -26,10 +26,7 @@
     "bin/sparql-benchmark-runner",
     "lib/**/*.js",
     "lib/**/*.json",
-    "lib/**/*.js.map",
-    "index.d.ts",
-    "index.js.map",
-    "index.ts"
+    "lib/**/*.js.map"
   ],
   "scripts": {
     "build": "tsc",
