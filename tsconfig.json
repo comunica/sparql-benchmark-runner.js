@@ -17,12 +17,7 @@
     "strict": true
   },
   "include": [
-    "index.ts",
-    "bin/**/*",
-    "lib/**/*"
-  ],
-  "exclude": [
-    "**/node_modules",
-    "**/test/*"
+    "bin/*.ts",
+    "lib/*.ts"
   ]
 }
