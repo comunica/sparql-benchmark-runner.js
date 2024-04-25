@@ -7,7 +7,6 @@ WORKDIR /sparql-benchmark-runner
 ## Copy all files
 COPY bin/ ./bin/
 COPY lib/ ./lib/
-COPY index.ts .
 COPY package.json .
 COPY tsconfig.json .
 COPY yarn.lock .
