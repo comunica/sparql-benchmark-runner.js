@@ -36,39 +36,12 @@
     "test": "jest ${1}",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
     "lint": "eslint . --ext .ts --cache",
-    "prepare": "npm run build",
+    "prepare": "yarn run build",
     "version": "manual-git-changelog onversion"
   },
   "husky": {
     "hooks": {
       "pre-commit": "npm run build && npm run lint && npm run test"
-    }
-  },
-  "jest": {
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.json"
-      }
-    },
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "testRegex": "/test/.*-test.ts$",
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "collectCoverage": true,
-    "coveragePathIgnorePatterns": [
-      "test"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 100,
-        "functions": 100,
-        "lines": 100,
-        "statements": 100
-      }
     }
   },
   "dependencies": {
