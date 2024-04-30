@@ -1,32 +1,42 @@
+import { createHash, type Hash } from 'node:crypto';
+import type * as RDF from '@rdfjs/types';
 import { SparqlEndpointFetcher } from 'fetch-sparql-endpoint';
-import type { IBenchmarkResults } from './IBenchmarkResults';
+import { termToString } from 'rdf-string';
+import type { IResult, IResultMetadata, IAggregateResult } from './Result';
+import type { IResultAggregator } from './ResultAggregator';
+import { ResultAggregatorComunica } from './ResultAggregatorComunica';
 
 /**
  * Executes query sets against a SPARQL endpoint.
  */
 export class SparqlBenchmarkRunner {
-  private readonly endpoint: string;
-  private readonly querySets: Record<string, string[]>;
-  private readonly replication: number;
-  private readonly warmup: number;
-  private readonly timestampsRecording: boolean;
-  private readonly logger?: (message: string) => void;
-  private readonly upQuery: string;
-  private readonly additionalUrlParamsInit?: URLSearchParams;
-  private readonly additionalUrlParamsRun?: URLSearchParams;
-  private readonly timeout?: number;
+  protected readonly endpoint: string;
+  protected readonly timeout?: number;
+  protected readonly requestDelay?: number;
+  protected readonly replication: number;
+  protected readonly warmup: number;
+  protected readonly querySets: Record<string, string[]>;
+  protected readonly bindingsHashAlgorithm: string;
+  protected readonly logger?: (message: string) => void;
+  protected readonly resultAggregator: IResultAggregator;
+  protected readonly availabilityCheckTimeout: number;
+  protected readonly endpointFetcher: SparqlEndpointFetcher;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
+    this.logger = options.logger;
+    this.resultAggregator = options.resultAggregator ?? new ResultAggregatorComunica();
     this.endpoint = options.endpoint;
     this.querySets = options.querySets;
     this.replication = options.replication;
     this.warmup = options.warmup;
-    this.timestampsRecording = options.timestampsRecording;
-    this.logger = options.logger;
-    this.upQuery = options.upQuery || 'SELECT * WHERE { ?s ?p ?o } LIMIT 1';
-    this.additionalUrlParamsInit = options.additionalUrlParamsInit;
-    this.additionalUrlParamsRun = options.additionalUrlParamsRun;
     this.timeout = options.timeout;
+    this.requestDelay = options.requestDelay;
+    this.bindingsHashAlgorithm = 'md5';
+    this.availabilityCheckTimeout = options.availabilityCheckTimeout ?? 10_000;
+    this.endpointFetcher = new SparqlEndpointFetcher({
+      additionalUrlParams: options.additionalUrlParams,
+      timeout: options.timeout,
+    });
   }
 
   /**
@@ -34,153 +44,148 @@ export class SparqlBenchmarkRunner {
    * execute all query sets against the SPARQL endpoint.
    * Afterwards, all results are collected and averaged.
    */
-  public async run(options: IRunOptions = {}): Promise<IBenchmarkResults> {
-    // Await query execution until the endpoint is live
-    await this.waitUntilUp();
-
+  public async run(options: IRunOptions = {}): Promise<IAggregateResult[]> {
     // Execute queries in warmup
-    this.log(`Warming up for ${this.warmup} rounds\n`);
-    await this.executeQueries({}, this.warmup);
+    if (this.warmup > 0) {
+      await this.executeAllQueries(this.warmup, true);
+    }
 
     // Execute queries
-    const results: IBenchmarkResults = {};
-    this.log(`Executing ${Object.keys(this.querySets).length} queries with replication ${this.replication}\n`);
     if (options.onStart) {
       await options.onStart();
     }
-    await this.executeQueries(results, this.replication);
+
+    const results = await this.executeAllQueries(this.replication);
+
     if (options.onStop) {
       await options.onStop();
     }
 
-    // Average results
-    for (const key in results) {
-      results[key].time = Math.floor(results[key].time / this.replication);
-      results[key].timestamps = results[key].timestamps.map(t => Math.floor(t / this.replication));
+    const aggregateResults = this.resultAggregator.aggregateResults(results);
+
+    return aggregateResults;
+  }
+
+  /**
+   * Executes all queries from the runner's query sets, outputting the results.
+   * @param replication The number of executions per individual query.
+   * @param warmup Whether the executions are intended for warmup purposes only.
+   * @returns The query reults, unless warmup is specified.
+   */
+  public async executeAllQueries(replication: number, warmup = false): Promise<IResult[]> {
+    const totalQuerySets = Object.keys(this.querySets).length;
+    const totalQueries = Object.values(this.querySets).map(qs => qs.length).reduce((acc, qsl) => acc + qsl);
+    const startTime = Date.now();
+
+    if (warmup) {
+      this.log(`Warming up by executing ${totalQuerySets} query sets, containing ${totalQueries} queries, for ${replication} rounds`);
+    } else {
+      this.log(`Executing ${totalQuerySets} query sets, containing ${totalQueries} queries, with replication of ${replication}`);
     }
+
+    let finishedExecutions = 0;
+    const totalExecutions = (totalQueries * replication).toString();
+    const results: IResult[] = [];
+
+    for (const [ name, queryStrings ] of Object.entries(this.querySets)) {
+      for (let i = 0; i < replication; i++) {
+        for (const [ id, queryString ] of queryStrings.entries()) {
+          this.log(`Execute: ${(++finishedExecutions).toString().padStart(totalExecutions.length, ' ')} / ${totalExecutions} <${name}#${id}>`);
+          await this.waitForEndpoint();
+          if (this.requestDelay) {
+            await this.sleep(this.requestDelay);
+          }
+          const result = await this.executeQuery(name, id.toString(), queryString);
+          if (!warmup) {
+            results.push(result);
+          }
+          if (this.requestDelay) {
+            await this.sleep(this.requestDelay);
+          }
+        }
+      }
+    }
+
+    this.log(`${warmup ? 'Warmup' : 'Executions'} done in ${Math.round((Date.now() - startTime) / 60_000)} minutes`);
 
     return results;
   }
 
   /**
-   * Execute all queries against the endpoint.
-   * @param data The results to append to.
-   * @param iterations The number of times to iterate.
+   * Executes a single query against the endpoint.
+   * @param name The query set name.
+   * @param id The query index within the query set.
+   * @param queryString The SPARQL query string.
+   * @returns The query result.
    */
-  public async executeQueries(data: IBenchmarkResults, iterations: number): Promise<void> {
-    this.log('Executing query ');
-    for (let iteration = 0; iteration < iterations; iteration++) {
-      for (const name in this.querySets) {
-        const test = this.querySets[name];
-        // eslint-disable-next-line @typescript-eslint/no-for-in-array
-        for (const id in test) {
-          this.log(`\rExecuting query ${name}:${id} for iteration ${iteration + 1}/${iterations}`);
-          const query = test[id];
-          let count: number;
-          let time: number;
-          let timestamps: number[];
-          let metadata: Record<string, any>;
-          let errorObject: Error | undefined;
+  public async executeQuery(name: string, id: string, queryString: string): Promise<IResult> {
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    const bindingsStrings: string[] = [];
+    const hrstart = process.hrtime();
 
-          // Execute query, and catch errors
-          try {
-            ({ count, time, timestamps, metadata } = await this.executeQuery(query));
-          } catch (error: unknown) {
-            errorObject = <Error> error;
-            if ('partialOutput' in <any> errorObject) {
-              ({ count, time, timestamps, metadata } = (<any>errorObject).partialOutput);
-            } else {
-              count = 0;
-              time = 0;
-              timestamps = [];
-              metadata = {};
-            }
-          }
+    const result: IResult = {
+      name,
+      id,
+      resultHash: '',
+      resultCount: 0,
+      duration: 0,
+      timestamps: [],
+    };
 
-          // Store results
-          if (!data[name + id]) {
-            data[name + id] = { name, id, count, time, timestamps, error: Boolean(errorObject), metadata };
-          } else {
-            const dataEntry = data[name + id];
-
-            if (errorObject) {
-              dataEntry.error = true;
-            }
-
-            dataEntry.time += time;
-
-            // Combine timestamps
-            const length = Math.min(dataEntry.timestamps.length, timestamps.length);
-            for (let i = 0; i < length; ++i) {
-              dataEntry.timestamps[i] += timestamps[i];
-            }
-          }
-
-          // Delay if error
-          if (errorObject) {
-            this.log(`\rError occurred at query ${name}:${id} for iteration ${iteration + 1}/${iterations}: ${errorObject.message}\n`);
-
-            // Wait until the endpoint is properly live again
-            await this.sleep(3_000);
-            await this.waitUntilUp();
-          }
-        }
+    const timeoutPromise = new Promise<void>((resolve, reject) => {
+      if (this.timeout) {
+        // When timeout is not set, this promise will never reject or resolve
+        timeoutHandle = setTimeout(() => {
+          reject(new Error(`Query timed out after ${Math.round(this.timeout! / 1_000)} seconds client-side`));
+        }, this.timeout);
       }
+    });
+
+    const queryPromise = new Promise<void>((resolve, reject) => {
+      this.endpointFetcher.fetchBindings(this.endpoint, queryString)
+        .then(bindingsStream => bindingsStream
+          .on('metadata', (metadata: IResultMetadata) => {
+            for (const [ key, value ] of Object.entries(metadata)) {
+              // eslint-disable-next-line ts/no-unsafe-assignment
+              result[key] = value;
+            }
+          })
+          .on('data', (bindings: Record<string, RDF.Term>) => {
+            result.timestamps.push(Math.round(this.countTime(hrstart)));
+            result.resultCount++;
+            bindingsStrings.push(this.bindingsToString(bindings));
+          })
+          .on('end', resolve).on('error', reject)).catch(reject);
+    });
+
+    try {
+      await Promise.race([ queryPromise, timeoutPromise ]);
+    } catch (error: unknown) {
+      result.error = <Error>error;
+      this.log(`${result.error.name}: ${result.error.message}`);
     }
-    this.log(`"\rExecuted all queries\n`);
+
+    clearTimeout(timeoutHandle);
+    result.duration = Math.round(this.countTime(hrstart));
+
+    const bindingsHash: Hash = createHash(this.bindingsHashAlgorithm, { encoding: 'utf-8' });
+    for (const bindingsString of bindingsStrings.sort((bindA, bindB) => bindA.localeCompare(bindB))) {
+      bindingsHash.update(bindingsString);
+    }
+    result.resultHash = bindingsHash.digest('hex');
+
+    return result;
   }
 
   /**
-   * Execute a single query
-   * @param query A SPARQL query string
+   * Convert result bindings to string, while ensuring that the keys
+   * are always serialized in the same order through sorting.
    */
-  public async executeQuery(query: string): Promise<{
-    count: number; time: number; timestamps: number[]; metadata: Record<string, any>;
-  }> {
-    const fetcher = new SparqlEndpointFetcher({
-      additionalUrlParams: this.additionalUrlParamsRun,
-    });
-    let promiseTimeout: Promise<any> | undefined;
-    let timeoutHandle: NodeJS.Timeout | undefined;
-    if (this.timeout) {
-      promiseTimeout = new Promise((resolve, reject) => {
-        timeoutHandle = <any> setTimeout(() => reject(new Error('Timeout for running query')), this.timeout);
-      });
-    }
-    const promiseFetch = fetcher.fetchBindings(this.endpoint, query)
-      .then(results => new Promise<{
-        count: number; time: number; timestamps: number[]; metadata: Record<string, any>;
-      }>((resolve, reject) => {
-        const hrstart = process.hrtime();
-        let count = 0;
-        const timestamps: number[] = [];
-        let metadata: Record<string, any> = {};
-        results.on('metadata', (readMetadata: any) => {
-          metadata = readMetadata;
-        });
-        results.on('data', () => {
-          count++;
-          if (this.timestampsRecording) {
-            timestamps.push(this.countTime(hrstart));
-          }
-        });
-        results.on('error', (error: any) => {
-          error.partialOutput = {
-            count,
-            time: this.countTime(hrstart),
-            timestamps,
-            metadata,
-          };
-          reject(error);
-        });
-        results.on('end', () => {
-          if (timeoutHandle) {
-            clearTimeout(timeoutHandle);
-          }
-          resolve({ count, time: this.countTime(hrstart), timestamps, metadata });
-        });
-      }));
-    return promiseTimeout ? Promise.race([ promiseTimeout, promiseFetch ]) : promiseFetch;
+  public bindingsToString(bindings: Record<string, RDF.Term>): string {
+    const bindingsToSerialize: Record<string, string> = Object.fromEntries(Object.entries(bindings)
+      .sort(([ keyA ], [ keyB ]) => keyA.localeCompare(keyB))
+      .map(([ key, term ]) => [ key, termToString(term) ]));
+    return JSON.stringify(bindingsToSerialize);
   }
 
   /**
@@ -195,42 +200,32 @@ export class SparqlBenchmarkRunner {
   /**
    * Check if the SPARQL endpoint is available.
    */
-  public isUp(): Promise<boolean> {
-    const fetcher = new SparqlEndpointFetcher({
-      additionalUrlParams: this.additionalUrlParamsInit,
-    });
+  public async endpointAvailable(): Promise<boolean> {
     let timeoutHandle: NodeJS.Timeout | undefined;
-    const promiseTimeout = new Promise<boolean>(resolve => {
-      timeoutHandle = <any> setTimeout(() => resolve(false), 10_000);
+    const promiseTimeout = new Promise<boolean>((resolve) => {
+      timeoutHandle = setTimeout(() => resolve(false), this.availabilityCheckTimeout);
     });
-    const promiseFetch = fetcher.fetchBindings(this.endpoint, this.upQuery)
-      .then(results => new Promise<boolean>(resolve => {
-        results.on('error', () => {
-          clearTimeout(timeoutHandle);
-          resolve(false);
-        });
-        results.on('data', () => {
-          // Do nothing
-        });
-        results.on('end', () => {
-          clearTimeout(timeoutHandle);
-          resolve(true);
-        });
-      }));
-    return Promise.race([ promiseTimeout, promiseFetch ])
-      .catch(() => false);
+    const promiseFetch = new Promise<boolean>((resolve) => {
+      fetch(this.endpoint, {
+        method: 'HEAD',
+      }).then(respose => resolve(respose.ok)).catch(() => resolve(false));
+    });
+    const available = await Promise.race([ promiseTimeout, promiseFetch ]);
+    clearTimeout(timeoutHandle);
+    return available;
   }
 
   /**
    * Wait until the SPARQL endpoint is available.
    */
-  public async waitUntilUp(): Promise<void> {
-    let counter = 0;
-    while (!await this.isUp()) {
+  public async waitForEndpoint(): Promise<void> {
+    const hrstart = process.hrtime();
+    const elapsed = (): number => Math.round(this.countTime(hrstart) / 1_000);
+    while (!await this.endpointAvailable()) {
       await this.sleep(1_000);
-      this.log(`\rEndpoint not available yet, waited for ${++counter} seconds...`);
+      this.log(`Endpoint not available yet, waited for ${elapsed()} seconds...`);
     }
-    this.log(`\rEndpoint available after ${counter} seconds.\n`);
+    this.log(`Endpoint available after ${elapsed()} seconds`);
   }
 
   /**
@@ -268,26 +263,18 @@ export interface ISparqlBenchmarkRunnerArgs {
    */
   warmup: number;
   /**
-   * If a timestamps column should be added with result arrival times.
-   */
-  timestampsRecording: boolean;
-  /**
    * Destination for log messages.
    * @param message Message to log.
    */
   logger?: (message: string) => void;
   /**
-   * SPARQL SELECT query that will be sent to the endpoint to check if it is up.
+   * Query result aggregator, used to average the results across replications.
    */
-  upQuery?: string;
+  resultAggregator?: IResultAggregator;
   /**
-   * Additional URL parameters that must be sent to the endpoint when checking if the endpoint is up.
+   * Additional URL parameters that must be sent to the endpoint.
    */
-  additionalUrlParamsInit?: URLSearchParams;
-  /**
-   * Additional URL parameters that must be sent to the endpoint during actual query execution.
-   */
-  additionalUrlParamsRun?: URLSearchParams;
+  additionalUrlParams?: URLSearchParams;
   /**
    * A timeout for query execution in milliseconds.
    *
@@ -297,6 +284,14 @@ export interface ISparqlBenchmarkRunnerArgs {
    * This timeout is only supposed to be used as a fallback to an endpoint-driven timeout.
    */
   timeout?: number;
+  /**
+   * A timeout in milliseconds for checking whether the SPARQL endpoint is up.
+   */
+  availabilityCheckTimeout?: number;
+  /**
+   * The delay between subsequent requests sent to the server.
+   */
+  requestDelay?: number;
 }
 
 export interface IRunOptions {

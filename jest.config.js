@@ -1,10 +1,5 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  globals: {
-    'ts-jest': {
-      'tsconfig': 'tsconfig.json',
-    },
-  },
   transform: {
     '^.+\\.ts$': [ 'ts-jest' ],
   },
