@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v3.0.0"></a>
+## [v3.0.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.4...v3.0.0) - 2024-04-30
+
+### BREAKING CHANGES
+* [Rewrite into more modular components with additional metrics (#7)](https://github.com/comunica/sparql-benchmark-runner.js/commit/8fd9b182b57a9d3a042d5bb57fccf5943ae4b4de)
+
+### Changed
+* [Remove redundant index.ts copy step from Dockerfile](https://github.com/comunica/sparql-benchmark-runner.js/commit/a62d388d7fb7aab1d88cc2b73961d44e03d04bde)
+* [Relocate index.ts to lib](https://github.com/comunica/sparql-benchmark-runner.js/commit/ba88f8a06567a437f0bbb2fcf205f0057ae1c1d3)
+
 <a name="v2.9.4"></a>
 ## [v2.9.4](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.3...v2.9.4) - 2023-02-11
 
