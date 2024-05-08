@@ -23,9 +23,9 @@ describe('ResultSerializerCsv', () => {
       {
         name: 'a',
         id: '0',
-        duration: 0,
-        resultCount: 0,
-        resultHash: 'hash',
+        time: 0,
+        results: 0,
+        hash: 'hash',
         timestamps: [],
         functionValue: () => {},
         bigintValue: BigInt(1),
@@ -33,9 +33,9 @@ describe('ResultSerializerCsv', () => {
       {
         name: 'a',
         id: '1',
-        duration: 1,
-        resultCount: 1,
-        resultHash: 'result',
+        time: 1,
+        results: 1,
+        hash: 'result',
         timestamps: [ 1 ],
         symbolValue: Symbol('Example symbol'),
         // eslint-disable-next-line symbol-description
@@ -45,10 +45,10 @@ describe('ResultSerializerCsv', () => {
       {
         name: 'a',
         id: '2',
-        duration: 0,
+        time: 0,
         error: new Error('Example error'),
-        resultCount: 0,
-        resultHash: 'error',
+        results: 0,
+        hash: 'error',
         timestamps: [],
         objectValue: new ReadableStream(),
       },
@@ -60,15 +60,15 @@ describe('ResultSerializerCsv', () => {
       'name',
       'id',
       'bigintValue',
-      'duration',
       'error',
       'errorDescription',
       'functionValue',
+      'hash',
       'objectValue',
-      'resultCount',
-      'resultHash',
+      'results',
       'symbolValue',
       'symbolWithoutValue',
+      'time',
       'timestamps',
       'undefinedValue',
     ]);
@@ -77,10 +77,10 @@ describe('ResultSerializerCsv', () => {
   it('should properly serialize results', async() => {
     const expectedLines = [
       // eslint-disable-next-line max-len
-      'name;id;bigintValue;duration;error;errorDescription;functionValue;objectValue;resultCount;resultHash;symbolValue;symbolWithoutValue;timestamps;undefinedValue\n',
-      'a;0;1;0;false;;functionValue;;0;hash;;;;\n',
-      'a;1;;1;false;;;;1;result;Example symbol;;1;\n',
-      'a;2;;0;true;Example error;;ReadableStream;0;error;;;;\n',
+      'name;id;bigintValue;error;errorDescription;functionValue;hash;objectValue;results;symbolValue;symbolWithoutValue;time;timestamps;undefinedValue\n',
+      'a;0;1;false;;functionValue;hash;;0;;;0;;\n',
+      'a;1;;false;;;result;;1;Example symbol;;1;1;\n',
+      'a;2;;true;Example error;;error;ReadableStream;0;;;0;;\n',
     ];
     await resultSerializer.serialize('results.csv', results);
     for (const [ index, line ] of expectedLines.entries()) {
@@ -94,9 +94,9 @@ describe('ResultSerializerCsv', () => {
       arraySeparator: ' ',
       columnSeparator: ';',
       ignoreKeys: [
-        'duration',
+        'time',
         'bigintValue',
-        'resultHash',
+        'hash',
         'objectValue',
         'functionValue',
         'symbolValue',
@@ -106,7 +106,7 @@ describe('ResultSerializerCsv', () => {
       ],
     });
     const expectedLines = [
-      'name;id;error;errorDescription;resultCount;timestamps\n',
+      'name;id;error;errorDescription;results;timestamps\n',
       'a;0;false;;0;\n',
       'a;1;false;;1;1\n',
       'a;2;true;Example error;0;\n',

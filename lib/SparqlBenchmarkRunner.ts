@@ -126,9 +126,9 @@ export class SparqlBenchmarkRunner {
     const result: IResult = {
       name,
       id,
-      resultHash: '',
-      resultCount: 0,
-      duration: 0,
+      hash: '',
+      results: 0,
+      time: 0,
       timestamps: [],
     };
 
@@ -152,7 +152,7 @@ export class SparqlBenchmarkRunner {
           })
           .on('data', (bindings: Record<string, RDF.Term>) => {
             result.timestamps.push(Math.round(this.countTime(hrstart)));
-            result.resultCount++;
+            result.results++;
             bindingsStrings.push(this.bindingsToString(bindings));
           })
           .on('end', resolve).on('error', reject)).catch(reject);
@@ -166,13 +166,13 @@ export class SparqlBenchmarkRunner {
     }
 
     clearTimeout(timeoutHandle);
-    result.duration = Math.round(this.countTime(hrstart));
+    result.time = Math.round(this.countTime(hrstart));
 
     const bindingsHash: Hash = createHash(this.bindingsHashAlgorithm, { encoding: 'utf-8' });
     for (const bindingsString of bindingsStrings.sort((bindA, bindB) => bindA.localeCompare(bindB))) {
       bindingsHash.update(bindingsString);
     }
-    result.resultHash = bindingsHash.digest('hex');
+    result.hash = bindingsHash.digest('hex');
 
     return result;
   }
