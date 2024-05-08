@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.0.0"></a>
+## [v4.0.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v3.0.0...v4.0.0) - 2024-05-08
+
+### BREAKING CHANGES
+* [Revert result entry names to v2 for tooling compatibility](https://github.com/comunica/sparql-benchmark-runner.js/commit/76d4ea42d16a8af75be3e5d28e1b4fc1086e431a)
+    * This means that breaking changes to output CSV files introduced in the previous release have been reverted, so things remain compatible with v2.
+
 <a name="v3.0.0"></a>
 ## [v3.0.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v2.9.4...v3.0.0) - 2024-04-30
 
