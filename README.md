@@ -84,7 +84,7 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
   const resultSerializer = new ResultSerializerCsv();
   const resultAggregator = new ResultAggregatorComunica();
 
-  const querySets = await loader.loadQueries();
+  const querySets = await queryLoader.loadQueries();
 
   const runner = new SparqlBenchmarkRunner({
     endpoint: 'https://localhost:8080/sparql',
