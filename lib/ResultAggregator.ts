@@ -30,15 +30,15 @@ export class ResultAggregator implements IResultAggregator {
       const aggregate: IAggregateResult = {
         name: resultGroup[0].name,
         id: resultGroup[0].id,
-        duration: 0,
-        durationMax: 0,
-        durationMin: 0,
+        time: 0,
+        timeMax: 0,
+        timeMin: 0,
         failures: 0,
         replication: resultGroup.length,
-        resultCount: 0,
-        resultCountMax: 0,
-        resultCountMin: 0,
-        resultHash: '',
+        results: 0,
+        resultsMax: 0,
+        resultsMin: 0,
+        hash: '',
         timestamps: [],
         timestampsMax: [],
         timestampsMin: [],
@@ -50,16 +50,16 @@ export class ResultAggregator implements IResultAggregator {
         if (result.error) {
           aggregate.error = result.error;
           aggregate.failures++;
-        } else if (aggregate.resultHash.length === 0) {
+        } else if (aggregate.hash.length === 0) {
           // Update the aggregate based on the first successful result
           successfulExecutions++;
-          aggregate.duration = result.duration;
-          aggregate.durationMax = result.duration;
-          aggregate.durationMin = result.duration;
-          aggregate.resultCount = result.resultCount;
-          aggregate.resultCountMax = result.resultCount;
-          aggregate.resultCountMin = result.resultCount;
-          aggregate.resultHash = result.resultHash;
+          aggregate.time = result.time;
+          aggregate.timeMax = result.time;
+          aggregate.timeMin = result.time;
+          aggregate.results = result.results;
+          aggregate.resultsMax = result.results;
+          aggregate.resultsMin = result.results;
+          aggregate.hash = result.hash;
           for (const ts of result.timestamps) {
             timestampDivisors.push(1);
             aggregate.timestamps.push(ts);
@@ -68,13 +68,13 @@ export class ResultAggregator implements IResultAggregator {
           }
         } else {
           successfulExecutions++;
-          aggregate.duration += result.duration;
-          aggregate.durationMax = Math.max(aggregate.durationMax, result.duration);
-          aggregate.durationMin = Math.min(aggregate.durationMin, result.duration);
-          aggregate.resultCount += result.resultCount;
-          aggregate.resultCountMax = Math.max(aggregate.resultCountMax, result.resultCount);
-          aggregate.resultCountMin = Math.min(aggregate.resultCountMin, result.resultCount);
-          if (aggregate.resultHash !== result.resultHash && !aggregate.error) {
+          aggregate.time += result.time;
+          aggregate.timeMax = Math.max(aggregate.timeMax, result.time);
+          aggregate.timeMin = Math.min(aggregate.timeMin, result.time);
+          aggregate.results += result.results;
+          aggregate.resultsMax = Math.max(aggregate.resultsMax, result.results);
+          aggregate.resultsMin = Math.min(aggregate.resultsMin, result.results);
+          if (aggregate.hash !== result.hash && !aggregate.error) {
             inconsistentResults = true;
             aggregate.failures++;
           }
@@ -97,8 +97,8 @@ export class ResultAggregator implements IResultAggregator {
         aggregate.error = new Error('Result hash inconsistency');
       }
       if (successfulExecutions > 0) {
-        aggregate.duration /= successfulExecutions;
-        aggregate.resultCount /= successfulExecutions;
+        aggregate.time /= successfulExecutions;
+        aggregate.results /= successfulExecutions;
         for (const [ index, timestampDivisor ] of timestampDivisors.entries()) {
           aggregate.timestamps[index] /= timestampDivisor;
         }

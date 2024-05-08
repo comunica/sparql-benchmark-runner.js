@@ -9,9 +9,9 @@ export type IResultMetadata = Record<string, any>;
 export interface IResult extends IResultMetadata {
   name: string;
   id: string;
-  resultCount: number;
-  resultHash: string;
-  duration: number;
+  results: number;
+  hash: string;
+  time: number;
   timestamps: number[];
   error?: Error;
 }
@@ -20,10 +20,10 @@ export interface IResult extends IResultMetadata {
  * Aggregate result for multiple executions of a query.
  */
 export interface IAggregateResult extends IResult {
-  resultCountMin: number;
-  resultCountMax: number;
-  durationMin: number;
-  durationMax: number;
+  resultsMin: number;
+  resultsMax: number;
+  timeMin: number;
+  timeMax: number;
   timestampsMin: number[];
   timestampsMax: number[];
   replication: number;
