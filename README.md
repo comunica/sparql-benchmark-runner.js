@@ -40,12 +40,12 @@ SELECT * WHERE {
 
 By default, it generates CSV output in a form similar to:
 ```csv
-name;id;duration;durationMax;durationMin;error;errorDescription;failures;replication;resultCount;resultCountMax;resultCountMin;resultHash;timestamps;timestampsMax;timestampsMin
-C1;0;2074.5;2153;1996;false;;0;2;6;6;6;d632b8166f912f4afd062d64186f2dc6;2070 2072.5 2072.5 2072.5 2072.5 2072.5;2145 2150 2150 2150 2150 2150;1995 1995 1995 1995 1995 1995
-C1;1;449.5;451;448;false;;0;2;4;4;4;e00f199d535cd1710bf9be67f04f39e4;448.5 449 449 449;450 451 451 451;447 447 447 447
-C1;2;359.5;370;349;false;;0;2;1;1;1;c4499554f796e968a069e67a8f5d9d1c;357.5;367;348
-C1;3;2262;2272;2252;false;;0;2;14;14;14;6c0a9fe8be642ee232c10c9996912b97;2260 2260 2260 2260.5 2260.5 2260.5 2260.5 2261 2261 2261 2261 2261 2261 2261;2271 2271 2271 2271 2271 2271 2271 2271 2271 2271 2271 2271 2271 2271;2249 2249 2249 2250 2250 2250 2250 2251 2251 2251 2251 2251 2251 2251
-C1;4;1970;2032;1908;false;;0;2;8;8;8;7536d3a2c1abc2a9ac92b1860efa3282;1967 1967.5 1968.5 1968.5 1969 1969 1969 1969;2030 2031 2031 2031 2031 2031 2031 2031;1904 1904 1906 1906 1907 1907 1907 1907
+name;id;error;errorDescription;failures;hash;httpRequests;httpRequestsMax;httpRequestsMin;replication;results;resultsMax;resultsMin;time;timeMax;timeMin;timestamps;timestampsMax;timestampsMin
+C-1;0;false;;0;d632b8166f912f4afd062d64186f2dc6;1766.5;2271;1262;2;6;6;6;1364;1398;1330;1363.5 1363.5 1363.5 1364 1364 1364;1398 1398 1398 1398 1398 1398;1329 1329 1329 1330 1330 1330
+C-1;1;false;;0;e00f199d535cd1710bf9be67f04f39e4;1803.5;2308;1299;2;4;4;4;212;214;210;211.5 212 212 212;213 214 214 214;210 210 210 210
+C-1;2;false;;0;c4499554f796e968a069e67a8f5d9d1c;1834.5;2339;1330;2;1;1;1;175.5;176;175;175.5;176;175
+C-1;3;false;;0;6c0a9fe8be642ee232c10c9996912b97;2279.5;2784;1775;2;14;14;14;1747;1796;1698;1746 1746 1746 1746 1746 1746 1746.5 1746.5 1746.5 1746.5 1747 1747 1747 1747;1795 1795 1795 1795 1795 1795 1795 1795 1795 1795 1796 1796 1796 1796;1697 1697 1697 1697 1697 1697 1698 1698 1698 1698 1698 1698 1698 1698
+C-1;4;false;;0;7536d3a2c1abc2a9ac92b1860efa3282;2522.5;3027;2018;2;8;8;8;1360;1373;1347;1355.5 1355.5 1355.5 1355.5 1359 1359 1359 1359;1372 1372 1372 1372 1372 1372 1372 1372;1339 1339 1339 1339 1346 1346 1346 1346
 ```
 
 ## Installation
@@ -67,12 +67,23 @@ sparql-benchmark-runner \
 
 When used as a JavaScript library, the runner can be configured with different query loaders,
 result aggregators and result serializers to accommodate special use cases.
+By default, when no specific result aggregator is provided,
+the runner uses `ResultAggregatorComunica` that handles basic aggregation,
+as well as the `httpRequests` metadata field from a Comunica SPARQL endpoint, if such metadata is provided.
 
 ```javascript
-import { SparqlBenchmarkRunner, ResultSerializerCsv, QueryLoaderFile} from 'sparql-benchmark-runner';
+import {
+  SparqlBenchmarkRunner,
+  ResultSerializerCsv,
+  ResultAggregatorComunica,
+  QueryLoaderFile,
+} from 'sparql-benchmark-runner';
 
 async function executeQueries(pathToQueries, pathToOutputCsv) {
-  const loader = new QueryLoaderFile(pathToQueries);
+  const queryLoader = new QueryLoaderFile(pathToQueries);
+  const resultSerializer = new ResultSerializerCsv();
+  const resultAggregator = new ResultAggregatorComunica();
+
   const querySets = await loader.loadQueries();
 
   const runner = new SparqlBenchmarkRunner({
@@ -83,14 +94,13 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     timeout: 60_000,
     availabilityCheckTimeout: 1_000,
     logger: (message) => console.log(message),
+    resultAggregator,
   });
 
   const results = await runner.run();
 
-  const serializer = new ResultSerializerCsv();
-  await serializer.serialize(path, results);
+  await resultSerializer.serialize(path, results);
 }
-
 ```
 
 ## Docker
