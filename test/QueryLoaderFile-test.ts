@@ -8,7 +8,7 @@ const queryFilesPath = '/tmp/queries';
 
 const queryFiles: Record<string, string> = {
   'a.rq': 'A',
-  'b.sparql': 'B1\n\nB2',
+  'b.sparql': 'B1\n\nB2\n\n\n\n',
   'c.txt': 'C',
   'd.json': 'D',
 };
