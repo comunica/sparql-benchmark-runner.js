@@ -18,7 +18,9 @@ export class QueryLoaderFile implements IQueryLoader {
       const extension = extname(file.name);
       if (file.isFile() && this.extensions.has(extension)) {
         const fileContents = await readFile(join(file.path, file.name), { encoding: 'utf-8' });
-        const queries = fileContents.split(querySeparator);
+        const queries = fileContents.split(querySeparator)
+          .map(query => query.trim())
+          .filter(query => query.length > 0);
         querySets[file.name.replace(extension, '')] = queries;
       }
     }
