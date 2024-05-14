@@ -18,7 +18,6 @@ jest.mock<typeof fsPromises>('node:fs/promises', () => <typeof fsPromises> <unkn
     if (path === queryFilesPath) {
       return Object.keys(queryFiles).map(file => (<Dirent> {
         name: file,
-        path: queryFilesPath,
         isFile: () => true,
       }));
     }
