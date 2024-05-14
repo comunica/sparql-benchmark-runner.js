@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.0.1"></a>
+## [v4.0.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.0.0...v4.0.1) - 2024-05-14
+
+### Fixed
+* [Ignore empty queries in QueryLoaderFile](https://github.com/comunica/sparql-benchmark-runner.js/commit/43b25f9dfe349b2dcb2e11865acb9b027c12d3d1)
+
 <a name="v4.0.0"></a>
 ## [v4.0.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v3.0.0...v4.0.0) - 2024-05-08
 
