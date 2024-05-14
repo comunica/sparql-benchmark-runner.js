@@ -14,14 +14,16 @@ export class QueryLoaderFile implements IQueryLoader {
   public async loadQueries(): Promise<Record<string, string[]>> {
     const querySets: Record<string, string[]> = {};
     const querySeparator = '\n\n';
-    for (const file of await readdir(this.path, { encoding: 'utf-8', withFileTypes: true })) {
-      const extension = extname(file.name);
-      if (file.isFile() && this.extensions.has(extension)) {
-        const fileContents = await readFile(join(file.path, file.name), { encoding: 'utf-8' });
-        const queries = fileContents.split(querySeparator)
-          .map(query => query.trim())
-          .filter(query => query.length > 0);
-        querySets[file.name.replace(extension, '')] = queries;
+    for (const dirent of await readdir(this.path, { encoding: 'utf-8', withFileTypes: true })) {
+      if (dirent.isFile()) {
+        const extension = extname(dirent.name);
+        if (this.extensions.has(extension)) {
+          const fileContents = await readFile(join(this.path, dirent.name), { encoding: 'utf-8' });
+          const queries = fileContents.split(querySeparator)
+            .map(query => query.trim())
+            .filter(query => query.length > 0);
+          querySets[dirent.name.replace(extension, '')] = queries;
+        }
       }
     }
     return querySets;
