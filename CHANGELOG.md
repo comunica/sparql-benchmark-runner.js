@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.0.2"></a>
+## [v4.0.2](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.0.1...v4.0.2) - 2024-05-15
+
+### Fixed
+* [Remove the use of Dirent.path as deprecated](https://github.com/comunica/sparql-benchmark-runner.js/commit/916dbf67ff3c7bc7c8c115f7c94eba5f9f98ede0)
+
 <a name="v4.0.1"></a>
 ## [v4.0.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.0.0...v4.0.1) - 2024-05-14
 
