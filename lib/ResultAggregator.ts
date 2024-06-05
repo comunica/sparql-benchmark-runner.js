@@ -47,7 +47,7 @@ export class ResultAggregator implements IResultAggregator {
       let successfulExecutions = 0;
       const timestampsAll: number[][] = [];
       // Track max number of timestamps for averaging of timestamps later
-      let maxNumTimestamp = Number.NEGATIVE_INFINITY;
+      let maxNumTimestamp = 0;
       for (const result of resultGroup) {
         if (result.error) {
           aggregate.error = result.error;
