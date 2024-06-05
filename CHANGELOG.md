@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.1.0"></a>
+## [v4.1.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.0.2...v4.1.0) - 2024-06-05
+
+### Changed
+* [Include timestamps of for timed-out queries](https://github.com/comunica/sparql-benchmark-runner.js/commit/902ca9f9178bb9ad8177e731d9682ae8d6ce4a07)
+
 <a name="v4.0.2"></a>
 ## [v4.0.2](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.0.1...v4.0.2) - 2024-05-15
 
