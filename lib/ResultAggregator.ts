@@ -88,10 +88,10 @@ export class ResultAggregator implements IResultAggregator {
           aggregate.results /= successfulExecutions;
         }
 
-        const processedTs = this.averageTimeStamps(timestampsAll, maxNumTimestamp);
-        aggregate.timestamps = processedTs.averageTs;
-        aggregate.timestampsMin = processedTs.minTs;
-        aggregate.timestampsMax = processedTs.maxTs;
+        const timestampsProcessed = this.averageTimeStamps(timestampsAll, maxNumTimestamp);
+        aggregate.timestamps = timestampsProcessed.timestampsAverage;
+        aggregate.timestampsMin = timestampsProcessed.timestampsMin;
+        aggregate.timestampsMax = timestampsProcessed.timestampsMax;
       }
 
       // Convert all possible leftover infinity / -infinity back to 0 for backward compatibility
@@ -106,23 +106,23 @@ export class ResultAggregator implements IResultAggregator {
   }
 
   public averageTimeStamps(timestampsAll: number[][], maxNumTimestamps: number): IProcessedTimestamps {
-    const totalTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
-    const maxTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.NEGATIVE_INFINITY);
-    const minTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.POSITIVE_INFINITY);
-    const nts: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
+    const timestampsSum: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
+    const timestampsMax: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.NEGATIVE_INFINITY);
+    const timestampsMin: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.POSITIVE_INFINITY);
+    const nObsTimestamp: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
 
     for (const timestamps of timestampsAll) {
       for (const [ j, ts ] of timestamps.entries()) {
-        totalTs[j] += ts;
-        maxTs[j] = Math.max(maxTs[j], ts);
-        minTs[j] = Math.min(minTs[j], ts);
-        nts[j]++;
+        timestampsSum[j] += ts;
+        timestampsMax[j] = Math.max(timestampsMax[j], ts);
+        timestampsMin[j] = Math.min(timestampsMin[j], ts);
+        nObsTimestamp[j]++;
       }
     }
     return {
-      maxTs,
-      minTs,
-      averageTs: totalTs.map((ts, i) => ts / nts[i]),
+      timestampsMax,
+      timestampsMin,
+      timestampsAverage: timestampsSum.map((ts, i) => ts / nObsTimestamp[i]),
     };
   }
 
@@ -143,7 +143,7 @@ export interface IResultAggregator {
 }
 
 export interface IProcessedTimestamps {
-  maxTs: number[];
-  minTs: number[];
-  averageTs: number[];
+  timestampsMax: number[];
+  timestampsMin: number[];
+  timestampsAverage: number[];
 }
