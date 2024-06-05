@@ -107,7 +107,7 @@ export class ResultAggregator implements IResultAggregator {
 
   public averageTimeStamps(timestampsAll: number[][], maxNumTimestamps: number): IProcessedTimestamps {
     const totalTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
-    const maxTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(-Number.POSITIVE_INFINITY);
+    const maxTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.NEGATIVE_INFINITY);
     const minTs: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.POSITIVE_INFINITY);
     const nts: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
 
