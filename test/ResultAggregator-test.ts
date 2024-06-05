@@ -6,6 +6,7 @@ describe('ResultAggregator', () => {
   const hashError = new Error('Result hash inconsistency');
   const aggregator = new ResultAggregator();
   let results: IResult[];
+  let noResults: IResult[];
 
   beforeEach(() => {
     results = [
@@ -32,7 +33,7 @@ describe('ResultAggregator', () => {
         error: exampleError,
         results: 1,
         hash: 'b',
-        timestamps: [ 50 ],
+        timestamps: [ 30 ],
       },
       {
         name: 'a',
@@ -49,6 +50,26 @@ describe('ResultAggregator', () => {
         results: 3,
         hash: 'b',
         timestamps: [ 10, 20, 30 ],
+      },
+    ];
+    noResults = [
+      {
+        name: 'a',
+        id: '0',
+        time: 0,
+        error: exampleError,
+        results: 0,
+        hash: 'a',
+        timestamps: [ ],
+      },
+      {
+        name: 'a',
+        id: '0',
+        time: 0,
+        error: exampleError,
+        results: 0,
+        hash: 'a',
+        timestamps: [ ],
       },
     ];
   });
@@ -93,6 +114,27 @@ describe('ResultAggregator', () => {
     expect(aggregator.aggregateResults(results.slice(0, 2))).toEqual(expected);
   });
 
+  it('produces the aggregate across multiple results with no produced results and timeout', () => {
+    const expected: IAggregateResult[] = [{
+      name: 'a',
+      id: '0',
+      error: exampleError,
+      time: 0,
+      timeMax: 0,
+      timeMin: 0,
+      failures: 2,
+      replication: 2,
+      results: 0,
+      resultsMax: 0,
+      resultsMin: 0,
+      hash: '',
+      timestamps: [ ],
+      timestampsMax: [ ],
+      timestampsMin: [ ],
+    }];
+    expect(aggregator.aggregateResults(noResults)).toEqual(expected);
+  });
+
   it('produces the aggregate across multiple results with errors', () => {
     const expected: IAggregateResult[] = [{
       name: 'a',
@@ -107,8 +149,8 @@ describe('ResultAggregator', () => {
       resultsMax: 3,
       resultsMin: 3,
       hash: 'a',
-      timestamps: [ 15, 25, 35 ],
-      timestampsMax: [ 20, 30, 40 ],
+      timestamps: [ 20, 25, 35 ],
+      timestampsMax: [ 30, 30, 40 ],
       timestampsMin: [ 10, 20, 30 ],
     }];
     expect(aggregator.aggregateResults(results.slice(0, 3))).toEqual(expected);

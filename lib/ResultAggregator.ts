@@ -31,13 +31,13 @@ export class ResultAggregator implements IResultAggregator {
         name: resultGroup[0].name,
         id: resultGroup[0].id,
         time: 0,
-        timeMax: 0,
-        timeMin: 0,
+        timeMax: Number.NEGATIVE_INFINITY,
+        timeMin: Number.POSITIVE_INFINITY,
         failures: 0,
         replication: resultGroup.length,
         results: 0,
-        resultsMax: 0,
-        resultsMin: 0,
+        resultsMax: Number.NEGATIVE_INFINITY,
+        resultsMin: Number.POSITIVE_INFINITY,
         hash: '',
         timestamps: [],
         timestampsMax: [],
@@ -45,67 +45,85 @@ export class ResultAggregator implements IResultAggregator {
       };
       let inconsistentResults = false;
       let successfulExecutions = 0;
-      const timestampDivisors: number[] = [];
+      const timestampsAll: number[][] = [];
+      // Track max number of timestamps for averaging of timestamps later
+      let maxNumTimestamp = 0;
       for (const result of resultGroup) {
         if (result.error) {
           aggregate.error = result.error;
           aggregate.failures++;
-        } else if (aggregate.hash.length === 0) {
-          // Update the aggregate based on the first successful result
-          successfulExecutions++;
-          aggregate.time = result.time;
-          aggregate.timeMax = result.time;
-          aggregate.timeMin = result.time;
-          aggregate.results = result.results;
-          aggregate.resultsMax = result.results;
-          aggregate.resultsMin = result.results;
-          aggregate.hash = result.hash;
-          for (const ts of result.timestamps) {
-            timestampDivisors.push(1);
-            aggregate.timestamps.push(ts);
-            aggregate.timestampsMax.push(ts);
-            aggregate.timestampsMin.push(ts);
+          // If no results and error we don't register
+          if (result.timestamps.length === 0) {
+            continue;
           }
         } else {
           successfulExecutions++;
           aggregate.time += result.time;
-          aggregate.timeMax = Math.max(aggregate.timeMax, result.time);
-          aggregate.timeMin = Math.min(aggregate.timeMin, result.time);
           aggregate.results += result.results;
           aggregate.resultsMax = Math.max(aggregate.resultsMax, result.results);
           aggregate.resultsMin = Math.min(aggregate.resultsMin, result.results);
-          if (aggregate.hash !== result.hash && !aggregate.error) {
+          aggregate.timeMax = Math.max(aggregate.timeMax, result.time);
+          aggregate.timeMin = Math.min(aggregate.timeMin, result.time);
+
+          // If we haven't registered hash, we do so for full query result
+          if (aggregate.hash.length === 0) {
+            aggregate.hash = result.hash;
+          } else if (aggregate.hash !== result.hash) {
             inconsistentResults = true;
             aggregate.failures++;
           }
-          for (const [ index, timestamp ] of result.timestamps.entries()) {
-            if (timestampDivisors.length > index) {
-              timestampDivisors[index] += 1;
-              aggregate.timestamps[index] += timestamp;
-              aggregate.timestampsMax[index] = Math.max(aggregate.timestampsMax[index], timestamp);
-              aggregate.timestampsMin[index] = Math.min(aggregate.timestampsMin[index], timestamp);
-            } else {
-              timestampDivisors.push(1);
-              aggregate.timestamps.push(timestamp);
-              aggregate.timestampsMax.push(timestamp);
-              aggregate.timestampsMin.push(timestamp);
-            }
-          }
+        }
+        timestampsAll.push(result.timestamps);
+        if (result.timestamps.length > maxNumTimestamp) {
+          maxNumTimestamp = result.timestamps.length;
         }
       }
       if (inconsistentResults && !aggregate.error) {
         aggregate.error = new Error('Result hash inconsistency');
       }
-      if (successfulExecutions > 0) {
-        aggregate.time /= successfulExecutions;
-        aggregate.results /= successfulExecutions;
-        for (const [ index, timestampDivisor ] of timestampDivisors.entries()) {
-          aggregate.timestamps[index] /= timestampDivisor;
+
+      if (timestampsAll.length > 0) {
+        if (successfulExecutions > 0) {
+          aggregate.time /= successfulExecutions;
+          aggregate.results /= successfulExecutions;
         }
+
+        const timestampsProcessed = this.averageTimeStamps(timestampsAll, maxNumTimestamp);
+        aggregate.timestamps = timestampsProcessed.timestampsAverage;
+        aggregate.timestampsMin = timestampsProcessed.timestampsMin;
+        aggregate.timestampsMax = timestampsProcessed.timestampsMax;
       }
+
+      // Convert all possible leftover infinity / -infinity back to 0 for backward compatibility
+      aggregate.resultsMin = Number.isFinite(aggregate.resultsMin) ? aggregate.resultsMin : 0;
+      aggregate.resultsMax = Number.isFinite(aggregate.resultsMax) ? aggregate.resultsMax : 0;
+      aggregate.timeMin = Number.isFinite(aggregate.timeMin) ? aggregate.timeMin : 0;
+      aggregate.timeMax = Number.isFinite(aggregate.timeMax) ? aggregate.timeMax : 0;
+
       aggregates.push(aggregate);
     }
     return aggregates;
+  }
+
+  public averageTimeStamps(timestampsAll: number[][], maxNumTimestamps: number): IProcessedTimestamps {
+    const timestampsSum: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
+    const timestampsMax: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.NEGATIVE_INFINITY);
+    const timestampsMin: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.POSITIVE_INFINITY);
+    const nObsTimestamp: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
+
+    for (const timestamps of timestampsAll) {
+      for (const [ j, ts ] of timestamps.entries()) {
+        timestampsSum[j] += ts;
+        timestampsMax[j] = Math.max(timestampsMax[j], ts);
+        timestampsMin[j] = Math.min(timestampsMin[j], ts);
+        nObsTimestamp[j]++;
+      }
+    }
+    return {
+      timestampsMax,
+      timestampsMin,
+      timestampsAverage: timestampsSum.map((ts, i) => ts / nObsTimestamp[i]),
+    };
   }
 
   /**
@@ -122,4 +140,10 @@ export class ResultAggregator implements IResultAggregator {
 
 export interface IResultAggregator {
   aggregateResults: (results: IResult[]) => IAggregateResult[];
+}
+
+export interface IProcessedTimestamps {
+  timestampsMax: number[];
+  timestampsMin: number[];
+  timestampsAverage: number[];
 }
