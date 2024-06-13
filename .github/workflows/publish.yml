@@ -1,0 +1,61 @@
+name: Publish
+
+on:
+  release:
+    types:
+      - released
+      - prereleased
+      - edited
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+      - uses: actions/cache@v4
+        with:
+          path: '**/.yarn'
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn run build
+      # TODO: when Yarn supports --provenance, switch to "yarn publish"
+      - run: yarn pack
+      - run: npm publish --provenance ./package.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: comunica/sparql-benchmark-runner
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
