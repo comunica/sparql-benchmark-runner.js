@@ -184,9 +184,12 @@ describe('SparqlBenchmarkRunner', () => {
     it('runs the whole query set and invokes listeners', async() => {
       const onStart = jest.fn();
       const onStop = jest.fn();
-      await runner.run({ onStart, onStop });
+      const onQuery = jest.fn();
+      await runner.run({ onStart, onStop, onQuery });
       expect(onStart).toHaveBeenCalledTimes(1);
       expect(onStop).toHaveBeenCalledTimes(1);
+      expect(onQuery).toHaveBeenCalledTimes(12);
+      expect(onQuery).toHaveBeenCalledWith('Q1');
     });
   });
 
@@ -960,8 +963,7 @@ describe('SparqlBenchmarkRunner', () => {
 
       expect(logger).toHaveBeenNthCalledWith(1, 'Executing 2 query sets, containing 4 queries, with replication of 2');
       expect(logger).toHaveBeenNthCalledWith(2, 'Execute: 1 / 8 <a#0>');
-      expect(logger).toHaveBeenNthCalledWith(3, 'Endpoint available after 0 seconds');
-      expect(logger).toHaveBeenNthCalledWith(4, `${expectedError.name}: ${expectedError.message}`);
+      expect(logger).toHaveBeenNthCalledWith(3, `${expectedError.name}: ${expectedError.message}`);
     });
 
     it('logs error for throwing query in stream and marks it as errored', async() => {
@@ -1070,8 +1072,7 @@ describe('SparqlBenchmarkRunner', () => {
 
       expect(logger).toHaveBeenNthCalledWith(1, 'Executing 2 query sets, containing 4 queries, with replication of 2');
       expect(logger).toHaveBeenNthCalledWith(2, 'Execute: 1 / 8 <a#0>');
-      expect(logger).toHaveBeenNthCalledWith(3, 'Endpoint available after 0 seconds');
-      expect(logger).toHaveBeenNthCalledWith(4, `${expectedError.name}: ${expectedError.message}`);
+      expect(logger).toHaveBeenNthCalledWith(3, `${expectedError.name}: ${expectedError.message}`);
     });
   });
 
@@ -1250,6 +1251,21 @@ describe('SparqlBenchmarkRunner', () => {
       jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Endpoint fetch failed'));
       const available = runner.endpointAvailable();
       await expect(available).resolves.toBeFalsy();
+    });
+  });
+
+  describe('waitForEndpoint', () => {
+    it('only prints if endpoint is not immediately available', async() => {
+      let call = 0;
+      process.hrtime = <any> (() => [ 1, 1_000_000 ]);
+      jest.spyOn(runner, 'endpointAvailable').mockImplementation(async(): Promise<boolean> => {
+        return call++ !== 0;
+      });
+      jest.spyOn(runner, 'sleep').mockResolvedValue();
+      await runner.waitForEndpoint();
+
+      expect(logger).toHaveBeenNthCalledWith(1, `Endpoint not available yet, waited for 1 seconds...`);
+      expect(logger).toHaveBeenNthCalledWith(2, `Endpoint available after 1 seconds`);
     });
   });
 

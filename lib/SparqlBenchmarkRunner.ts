@@ -20,7 +20,7 @@ export class SparqlBenchmarkRunner {
   protected readonly logger?: (message: string) => void;
   protected readonly resultAggregator: IResultAggregator;
   protected readonly availabilityCheckTimeout: number;
-  protected readonly endpointFetcher: SparqlEndpointFetcher;
+  public readonly endpointFetcher: SparqlEndpointFetcher;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.logger = options.logger;
@@ -47,7 +47,7 @@ export class SparqlBenchmarkRunner {
   public async run(options: IRunOptions = {}): Promise<IAggregateResult[]> {
     // Execute queries in warmup
     if (this.warmup > 0) {
-      await this.executeAllQueries(this.warmup, true);
+      await this.executeAllQueries(this.warmup, true, options.onQuery);
     }
 
     // Execute queries
@@ -55,7 +55,7 @@ export class SparqlBenchmarkRunner {
       await options.onStart();
     }
 
-    const results = await this.executeAllQueries(this.replication);
+    const results = await this.executeAllQueries(this.replication, false, options.onQuery);
 
     if (options.onStop) {
       await options.onStop();
@@ -70,9 +70,14 @@ export class SparqlBenchmarkRunner {
    * Executes all queries from the runner's query sets, outputting the results.
    * @param replication The number of executions per individual query.
    * @param warmup Whether the executions are intended for warmup purposes only.
+   * @param onQuery Callback for when a query is about to be executed.
    * @returns The query reults, unless warmup is specified.
    */
-  public async executeAllQueries(replication: number, warmup = false): Promise<IResult[]> {
+  public async executeAllQueries(
+    replication: number,
+    warmup: boolean,
+    onQuery?: (queryString: string) => Promise<void>,
+  ): Promise<IResult[]> {
     const totalQuerySets = Object.keys(this.querySets).length;
     const totalQueries = Object.values(this.querySets).map(qs => qs.length).reduce((acc, qsl) => acc + qsl);
     const startTime = Date.now();
@@ -94,6 +99,9 @@ export class SparqlBenchmarkRunner {
           await this.waitForEndpoint();
           if (this.requestDelay) {
             await this.sleep(this.requestDelay);
+          }
+          if (onQuery) {
+            await onQuery(queryString);
           }
           const result = await this.executeQuery(name, id.toString(), queryString);
           if (!warmup) {
@@ -225,7 +233,10 @@ export class SparqlBenchmarkRunner {
       await this.sleep(1_000);
       this.log(`Endpoint not available yet, waited for ${elapsed()} seconds...`);
     }
-    this.log(`Endpoint available after ${elapsed()} seconds`);
+    const seconds = elapsed();
+    if (seconds > 0) {
+      this.log(`Endpoint available after ${seconds} seconds`);
+    }
   }
 
   /**
@@ -303,4 +314,9 @@ export interface IRunOptions {
    * A listener for when the actual query executions have stopped.
    */
   onStop?: () => Promise<void>;
+  /**
+   * A listener for when a query is about to be executed.
+   * @param queryString A query string.
+   */
+  onQuery?: (queryString: string) => Promise<void>;
 }

@@ -37,7 +37,7 @@
     "version": "manual-git-changelog onversion"
   },
   "dependencies": {
-    "fetch-sparql-endpoint": "^5.0.0",
+    "fetch-sparql-endpoint": "^5.1.0",
     "rdf-string": "^1.0.0",
     "yargs": "^17.0.0"
   },
