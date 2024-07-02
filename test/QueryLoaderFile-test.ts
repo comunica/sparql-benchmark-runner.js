@@ -11,14 +11,26 @@ const queryFiles: Record<string, string> = {
   'b.sparql': 'B1\n\nB2\n\n\n\n',
   'c.txt': 'C',
   'd.json': 'D',
+  'dir/': 'true',
+};
+const queryFilesSub: Record<string, string> = {
+  'e.sparql': 'E',
 };
 
 jest.mock<typeof fsPromises>('node:fs/promises', () => <typeof fsPromises> <unknown> ({
   async readdir(path: string): Promise<Dirent[]> {
     if (path === queryFilesPath) {
       return Object.keys(queryFiles).map(file => (<Dirent> {
-        name: file,
-        isFile: () => true,
+        name: file.at(-1) === '/' ? file.slice(0, -1) : file,
+        isFile: () => file.at(-1) !== '/',
+        isDirectory: () => file.at(-1) === '/',
+      }));
+    }
+    if (path === join(queryFilesPath, 'dir')) {
+      return Object.keys(queryFilesSub).map(file => (<Dirent> {
+        name: file.at(-1) === '/' ? file.slice(0, -1) : file,
+        isFile: () => file.at(-1) !== '/',
+        isDirectory: () => file.at(-1) === '/',
       }));
     }
     throw new Error(`Requested readdir outside mocked one: ${path}`);
@@ -26,6 +38,12 @@ jest.mock<typeof fsPromises>('node:fs/promises', () => <typeof fsPromises> <unkn
   async readFile(path: string): Promise<string> {
     for (const [ file, contents ] of Object.entries(queryFiles)) {
       const filePath = join(queryFilesPath, file);
+      if (filePath === path) {
+        return contents;
+      }
+    }
+    for (const [ file, contents ] of Object.entries(queryFilesSub)) {
+      const filePath = join(join(queryFilesPath, 'dir'), file);
       if (filePath === path) {
         return contents;
       }
@@ -47,6 +65,7 @@ describe('QueryLoader', () => {
       a: [ 'A' ],
       b: [ 'B1', 'B2' ],
       c: [ 'C' ],
+      'dir/e': [ 'E' ],
     };
     expect(queries).toEqual(queriesExpected);
   });

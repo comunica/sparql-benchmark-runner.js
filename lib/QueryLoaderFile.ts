@@ -13,20 +13,31 @@ export class QueryLoaderFile implements IQueryLoader {
 
   public async loadQueries(): Promise<Record<string, string[]>> {
     const querySets: Record<string, string[]> = {};
+    await QueryLoaderFile.loadQueriesStatic(querySets, this.path, this.extensions);
+    return querySets;
+  }
+
+  protected static async loadQueriesStatic(
+    querySets: Record<string, string[]>,
+    path: string,
+    extensions: Set<string>,
+    prefix = '',
+  ): Promise<void> {
     const querySeparator = '\n\n';
-    for (const dirent of await readdir(this.path, { encoding: 'utf-8', withFileTypes: true })) {
+    for (const dirent of await readdir(path, { encoding: 'utf-8', withFileTypes: true })) {
       if (dirent.isFile()) {
         const extension = extname(dirent.name);
-        if (this.extensions.has(extension)) {
-          const fileContents = await readFile(join(this.path, dirent.name), { encoding: 'utf-8' });
+        if (extensions.has(extension)) {
+          const fileContents = await readFile(join(path, dirent.name), { encoding: 'utf-8' });
           const queries = fileContents.split(querySeparator)
             .map(query => query.trim())
             .filter(query => query.length > 0);
-          querySets[dirent.name.replace(extension, '')] = queries;
+          querySets[prefix + dirent.name.replace(extension, '')] = queries;
         }
+      } else if (dirent.isDirectory()) {
+        await QueryLoaderFile.loadQueriesStatic(querySets, join(path, dirent.name), extensions, `${prefix}${dirent.name}/`);
       }
     }
-    return querySets;
   }
 }
 
