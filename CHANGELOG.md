@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.2.0"></a>
+## [v4.2.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.1.0...v4.2.0) - 2024-07-02
+
+### Added
+* [Add onQuery run listener](https://github.com/comunica/sparql-benchmark-runner.js/commit/ebffa577f2dbea81c618765097ffc85256e5021e)
+* [Load queries recursively in subdirectories](https://github.com/comunica/sparql-benchmark-runner.js/commit/31a4582b9b9f4553b3c8a69e346e40e54ed3e19a)
+
 <a name="v4.1.0"></a>
 ## [v4.1.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.0.2...v4.1.0) - 2024-06-05
 

@@ -1,6 +1,6 @@
 {
   "name": "sparql-benchmark-runner",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "packageManager": "yarn@1.22.22",
   "description": "Executes a query set against a given SPARQL endpoint",
   "license": "MIT",
