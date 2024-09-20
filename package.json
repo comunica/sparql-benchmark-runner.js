@@ -4,6 +4,10 @@
   "packageManager": "yarn@1.22.22",
   "description": "Executes a query set against a given SPARQL endpoint",
   "license": "MIT",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/comunica-association"
+  },
   "homepage": "https://github.com/comunica/sparql-benchmark-runner.js#readme",
   "repository": "https://github.com/comunica/sparql-benchmark-runner.js",
   "bugs": {
