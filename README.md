@@ -113,7 +113,7 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     availabilityCheckTimeout: 1_000,
     logger: (message) => console.log(message),
     resultAggregator,
-    outputRawResults: false // false by default, if true will add the raw results (timeAggregate field) to aggregate
+    outputRawResults: false // false by default, if true will add the raw results (timeAggregate field) to the aggregated results
   });
 
   const results = await runner.run();
