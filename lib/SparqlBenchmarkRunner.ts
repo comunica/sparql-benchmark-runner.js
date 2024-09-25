@@ -308,7 +308,7 @@ export interface ISparqlBenchmarkRunnerArgs {
    */
   requestDelay?: number;
   /**
-   * Output a raw results cvs file along with the query result aggregator
+   * Output the raw results along side the aggregate results.
    */
   outputRawResults?: boolean;
 }
