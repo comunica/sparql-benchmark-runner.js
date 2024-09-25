@@ -72,7 +72,8 @@ Options:
                       output the raw results          [boolean] [default: false]
   ----help
 ```
-A user can run with this example input.
+An example input is the following.
+
 ```bash
 sparql-benchmark-runner \
   --endpoint http://example.org/sparql \
