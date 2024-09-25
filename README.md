@@ -55,7 +55,24 @@ npm install sparql-benchmark-runner
 ```
 
 ## Usage
-
+`sparql-benchmark-runner` can be used as a CLI programming with the the following options.
+```
+Options:
+  --version           Show version number                              [boolean]
+  --endpoint          URL of the SPARQL endpoint to send queries to
+                                                             [string] [required]
+  --queries           Directory of the queries               [string] [required]
+  --replication       Number of replication runs           [number] [default: 5]
+  --warmup            Number of warmup runs                [number] [default: 1]
+  --output            Destination for the output CSV file
+                                              [string] [default: "./output.csv"]
+  --timeout           Timeout value in seconds to use for individual queries
+                                                                        [number]
+  --outputRawResults  A flag indicating if SPARQL Benchmark Runner should also
+                      output the raw results          [boolean] [default: false]
+  ----help
+```
+A user can run with this example input.
 ```bash
 sparql-benchmark-runner \
   --endpoint http://example.org/sparql \
@@ -95,6 +112,7 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     availabilityCheckTimeout: 1_000,
     logger: (message) => console.log(message),
     resultAggregator,
+    outputRawResults: false // false by default, if true will add the raw results (timeAggregate field) to aggregate
   });
 
   const results = await runner.run();
@@ -113,12 +131,12 @@ docker run \
   --rm \
   --interactive \
   --tty \
-  --volume $(pwd)/output.csv:/tmp/output.csv \
-  --volume $(pwd)/queries:/tmp/queries \
+  --volume $(pwd)/output.csv:/output.csv \
+  --volume $(pwd)/queries:/queries \
   comunica/sparql-benchmark-runner \
   --endpoint https://dbpedia.org/sparql \
-  --queries /tmp/queries \
-  --output /tmp/output.csv \
+  --queries /queries \
+  --output /output.csv \
   --replication 5 \
   --warmup 1
 ```
