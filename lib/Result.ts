@@ -34,3 +34,10 @@ export interface IAggregateResult extends IResult {
   replication: number;
   failures: number;
 }
+
+/**
+ * Aggregate the raw results from multiple execution of a query.
+ */
+export interface IRawAggregateResult extends IAggregateResult {
+  timeAggregate: number[];
+}

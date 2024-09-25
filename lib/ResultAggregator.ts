@@ -1,4 +1,4 @@
-import type { IResult, IAggregateResult } from './Result';
+import type { IResult, IAggregateResult, IRawAggregateResult } from './Result';
 
 export class ResultAggregator implements IResultAggregator {
   /**
@@ -151,6 +151,33 @@ export class ResultAggregator implements IResultAggregator {
     };
   }
 
+  public aggregateRawGroupedResults(
+    groupedResults: Record<string, IResult[]>,
+    aggregateResults: IAggregateResult[],
+  ): IRawAggregateResult[] {
+    const rawAggregateResults: IRawAggregateResult[] = [];
+    const aggregateResultsMap: Map<string, IAggregateResult> = new Map(
+      aggregateResults.map(result => [ `${result.name}:${result.id}`, result ]),
+    );
+
+    for (const [ id, resultsSet ] of Object.entries(groupedResults)) {
+      // There will be always an aggregate results because it has been made from the group results
+      const currentAggregateResults = aggregateResultsMap.get(id)!;
+      const currentRawAggregateResult: IRawAggregateResult = {
+        ...currentAggregateResults,
+        timeAggregate: [],
+      };
+      if (currentAggregateResults.error) {
+        currentRawAggregateResult.error = currentAggregateResults.error;
+      }
+      for (const { time, error } of resultsSet) {
+        currentRawAggregateResult.timeAggregate.push(error ? Number.NaN : time);
+      }
+      rawAggregateResults.push(currentRawAggregateResult);
+    }
+    return rawAggregateResults;
+  }
+
   /**
    * Produce aggregated query results from a set of single execution results.
    * @param results Individual query execution results.
@@ -161,10 +188,23 @@ export class ResultAggregator implements IResultAggregator {
     const aggregateResults = this.aggregateGroupedResults(groupedResults);
     return aggregateResults;
   }
+
+  /**
+   * Produce raw aggregated query results from a set of single execution results.
+   * @param results Individual query execution results.
+   * @returns Raw aggregated results per individual query.
+   */
+  public aggregateRawResults(results: IResult[]): IRawAggregateResult[] {
+    const groupedResults = this.groupResults(results);
+    const aggregateResults = this.aggregateGroupedResults(groupedResults);
+    const aggregateRawResults = this.aggregateRawGroupedResults(groupedResults, aggregateResults);
+    return aggregateRawResults;
+  }
 }
 
 export interface IResultAggregator {
   aggregateResults: (results: IResult[]) => IAggregateResult[];
+  aggregateRawResults: (results: IResult[]) => IRawAggregateResult[];
 }
 
 export interface IProcessedTimestamps {

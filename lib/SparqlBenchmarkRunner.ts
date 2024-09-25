@@ -21,6 +21,7 @@ export class SparqlBenchmarkRunner {
   protected readonly resultAggregator: IResultAggregator;
   protected readonly availabilityCheckTimeout: number;
   public readonly endpointFetcher: SparqlEndpointFetcher;
+  public readonly outputRawResults: boolean;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.logger = options.logger;
@@ -37,6 +38,7 @@ export class SparqlBenchmarkRunner {
       additionalUrlParams: options.additionalUrlParams,
       timeout: options.timeout,
     });
+    this.outputRawResults = options.outputRawResults ?? false;
   }
 
   /**
@@ -61,7 +63,9 @@ export class SparqlBenchmarkRunner {
       await options.onStop();
     }
 
-    const aggregateResults = this.resultAggregator.aggregateResults(results);
+    const aggregateResults = this.outputRawResults ?
+      this.resultAggregator.aggregateRawResults(results) :
+      this.resultAggregator.aggregateResults(results);
 
     return aggregateResults;
   }
@@ -303,6 +307,10 @@ export interface ISparqlBenchmarkRunnerArgs {
    * The delay between subsequent requests sent to the server.
    */
   requestDelay?: number;
+  /**
+   * Output a raw results cvs file along with the query result aggregator
+   */
+  outputRawResults?: boolean;
 }
 
 export interface IRunOptions {
