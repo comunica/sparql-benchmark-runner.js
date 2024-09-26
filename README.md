@@ -56,20 +56,21 @@ npm install sparql-benchmark-runner
 
 ## Usage
 `sparql-benchmark-runner` can be used as a CLI programming with the the following options.
+
 ```
 Options:
-  --version           Show version number                              [boolean]
-  --endpoint          URL of the SPARQL endpoint to send queries to
+  --version                 Show version number                        [boolean]
+  --endpoint                URL of the SPARQL endpoint to send queries to
                                                              [string] [required]
-  --queries           Directory of the queries               [string] [required]
-  --replication       Number of replication runs           [number] [default: 5]
-  --warmup            Number of warmup runs                [number] [default: 1]
-  --output            Destination for the output CSV file
+  --queries                 Directory of the queries         [string] [required]
+  --replication             Number of replication runs     [number] [default: 5]
+  --warmup                  Number of warmup runs          [number] [default: 1]
+  --output                  Destination for the output CSV file
                                               [string] [default: "./output.csv"]
-  --timeout           Timeout value in seconds to use for individual queries
-                                                                        [number]
-  --outputRawResults  A flag indicating if SPARQL Benchmark Runner should also
-                      output the raw results          [boolean] [default: false]
+  --timeout                 Timeout value in seconds to use for individual
+                            queries                                     [number]
+  --outputIterationResults  A flag indicating if iteration results should be
+                            produced                  [boolean] [default: false]
   ----help
 ```
 An example input is the following.

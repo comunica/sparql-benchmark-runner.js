@@ -36,8 +36,8 @@ export interface IAggregateResult extends IResult {
 }
 
 /**
- * Aggregate the raw results from multiple execution of a query.
+ * Aggregate the iteration results from multiple execution of a query.
  */
-export interface IRawAggregateResult extends IAggregateResult {
+export interface IAggregateAndIterationResult extends IAggregateResult {
   timeAggregate: number[];
 }

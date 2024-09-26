@@ -2,7 +2,7 @@ import { Readable } from 'node:stream';
 import type * as RDF from '@rdfjs/types';
 import type * as fetchSparqlEndpoint from 'fetch-sparql-endpoint';
 import { DataFactory } from 'rdf-data-factory';
-import type { IAggregateResult, IRawAggregateResult, IResult } from '../lib/Result';
+import type { IAggregateResult, IAggregateAndIterationResult, IResult } from '../lib/Result';
 import { SparqlBenchmarkRunner } from '../lib/SparqlBenchmarkRunner';
 
 const streamifyArray = require('streamify-array');
@@ -165,12 +165,12 @@ describe('SparqlBenchmarkRunner', () => {
         logger,
         // The timeout is set here to lower than default 10 seconds, or the tests will take forever
         availabilityCheckTimeout: 1_000,
-        outputRawResults: true,
+        outputIterationResults: true,
       });
 
       const results = await runner.run();
 
-      const expectedResults: IRawAggregateResult[] = [
+      const expectedResults: IAggregateAndIterationResult[] = [
         {
           name: 'a',
           id: '0',

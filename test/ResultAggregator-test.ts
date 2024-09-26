@@ -1,4 +1,4 @@
-import type { IResult, IAggregateResult, IRawAggregateResult } from '../lib/Result';
+import type { IResult, IAggregateResult, IAggregateAndIterationResult } from '../lib/Result';
 import { ResultAggregator } from '../lib/ResultAggregator';
 
 describe('ResultAggregator', () => {
@@ -212,7 +212,7 @@ describe('ResultAggregator', () => {
     });
   });
 
-  describe('aggregateRawResults', () => {
+  describe('aggregateIterationResults', () => {
     beforeEach(() => {
       results = [
         {
@@ -281,7 +281,7 @@ describe('ResultAggregator', () => {
 
     it('produces the aggregate across one result', () => {
       const resultInput = [ results[0] ];
-      const expected: IRawAggregateResult[] = [{
+      const expected: IAggregateAndIterationResult[] = [{
         name: 'a',
         id: '0',
         time: 30,
@@ -300,12 +300,12 @@ describe('ResultAggregator', () => {
         timestampsStd: [ 0, 0, 0 ],
         timeAggregate: resultInput.map(result => result.time),
       }];
-      expect(aggregator.aggregateRawResults(resultInput)).toEqual(expected);
+      expect(aggregator.aggregateIterationResults(resultInput)).toEqual(expected);
     });
 
     it('produces the aggregate across multiple results', () => {
       const resultInput = results.slice(0, 2);
-      const expected: IRawAggregateResult[] = [{
+      const expected: IAggregateAndIterationResult[] = [{
         name: 'a',
         id: '0',
         time: 35,
@@ -324,11 +324,11 @@ describe('ResultAggregator', () => {
         timestampsStd: [ 5, 5, 5 ],
         timeAggregate: resultInput.map(result => result.time),
       }];
-      expect(aggregator.aggregateRawResults(resultInput)).toEqual(expected);
+      expect(aggregator.aggregateIterationResults(resultInput)).toEqual(expected);
     });
 
     it('produces the aggregate across multiple results with no produced results and timeout', () => {
-      const expected: IRawAggregateResult[] = [{
+      const expected: IAggregateAndIterationResult[] = [{
         name: 'a',
         id: '0',
         error: exampleError,
@@ -348,12 +348,12 @@ describe('ResultAggregator', () => {
         timestampsStd: [ ],
         timeAggregate: [ Number.NaN, Number.NaN ],
       }];
-      expect(aggregator.aggregateRawResults(noResults)).toEqual(expected);
+      expect(aggregator.aggregateIterationResults(noResults)).toEqual(expected);
     });
 
     it('produces the aggregate across multiple results with errors', () => {
       const resultInput = results.slice(0, 3);
-      const expected: IRawAggregateResult[] = [{
+      const expected: IAggregateAndIterationResult[] = [{
         name: 'a',
         id: '0',
         time: 35,
@@ -373,12 +373,12 @@ describe('ResultAggregator', () => {
         timestampsStd: [ 8.16496580927726, 5, 5 ],
         timeAggregate: resultInput.map(({ time, error }) => error ? Number.NaN : time),
       }];
-      expect(aggregator.aggregateRawResults(resultInput)).toEqual(expected);
+      expect(aggregator.aggregateIterationResults(resultInput)).toEqual(expected);
     });
 
     it('produces the aggregate across multiple results with inconsistent hashes', () => {
       const resultInput = [ results[0], results[4] ];
-      const expected: IRawAggregateResult[] = [{
+      const expected: IAggregateAndIterationResult[] = [{
         name: 'a',
         id: '0',
         time: 30,
@@ -398,12 +398,12 @@ describe('ResultAggregator', () => {
         timestampsStd: [ 0, 0, 0 ],
         timeAggregate: resultInput.map(({ time, error }) => error ? Number.NaN : time),
       }];
-      expect(aggregator.aggregateRawResults(resultInput)).toEqual(expected);
+      expect(aggregator.aggregateIterationResults(resultInput)).toEqual(expected);
     });
 
     it('produces the aggregate across multiple results with different result counts', () => {
       const resultInput = [ ...results.slice(0, 2), results[3] ];
-      const expected: IRawAggregateResult[] = [{
+      const expected: IAggregateAndIterationResult[] = [{
         name: 'a',
         id: '0',
         time: 40,
@@ -423,7 +423,7 @@ describe('ResultAggregator', () => {
         timestampsStd: [ 4.714045207910316, 4.714045207910316, 4.714045207910317, 0 ],
         timeAggregate: resultInput.map(({ time, error }) => error ? Number.NaN : time),
       }];
-      expect(aggregator.aggregateRawResults(resultInput)).toEqual(expected);
+      expect(aggregator.aggregateIterationResults(resultInput)).toEqual(expected);
     });
   });
 });

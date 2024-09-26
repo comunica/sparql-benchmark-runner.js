@@ -21,7 +21,7 @@ export class SparqlBenchmarkRunner {
   protected readonly resultAggregator: IResultAggregator;
   protected readonly availabilityCheckTimeout: number;
   public readonly endpointFetcher: SparqlEndpointFetcher;
-  public readonly outputRawResults: boolean;
+  public readonly outputIterationResults: boolean;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.logger = options.logger;
@@ -38,7 +38,7 @@ export class SparqlBenchmarkRunner {
       additionalUrlParams: options.additionalUrlParams,
       timeout: options.timeout,
     });
-    this.outputRawResults = options.outputRawResults ?? false;
+    this.outputIterationResults = options.outputIterationResults ?? false;
   }
 
   /**
@@ -63,8 +63,8 @@ export class SparqlBenchmarkRunner {
       await options.onStop();
     }
 
-    const aggregateResults = this.outputRawResults ?
-      this.resultAggregator.aggregateRawResults(results) :
+    const aggregateResults = this.outputIterationResults ?
+      this.resultAggregator.aggregateIterationResults(results) :
       this.resultAggregator.aggregateResults(results);
 
     return aggregateResults;
@@ -310,7 +310,7 @@ export interface ISparqlBenchmarkRunnerArgs {
   /**
    * Output the raw results along side the aggregate results.
    */
-  outputRawResults?: boolean;
+  outputIterationResults?: boolean;
 }
 
 export interface IRunOptions {

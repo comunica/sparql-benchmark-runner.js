@@ -61,9 +61,9 @@ async function main(): Promise<void> {
         coerce: (arg: number) => arg * 1_000,
         number: true,
       },
-      outputRawResults: {
+      outputIterationResults: {
         type: 'boolean',
-        description: 'A flag indicating if SPARQL Benchmark Runner should also output the raw results',
+        description: 'A flag indicating if iteration results should be produced',
         default: false,
       },
     })
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
     warmup: args.warmup,
     timeout: args.timeout,
     availabilityCheckTimeout: 1_000,
-    outputRawResults: args.outputRawResults,
+    outputIterationResults: args.outputIterationResults,
     logger,
   });
   const results: IAggregateResult[] = await runner.run();
