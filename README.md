@@ -56,7 +56,7 @@ npm install sparql-benchmark-runner
 ```
 
 ## Usage
-`sparql-benchmark-runner` can be used as a CLI programming with the the following options.
+`sparql-benchmark-runner` can be used from the CLI with the the following options.
 
 ```
 Options:
