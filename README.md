@@ -40,13 +40,14 @@ SELECT * WHERE {
 
 By default, it generates CSV output in a form similar to:
 ```csv
-name;id;error;errorDescription;failures;hash;httpRequests;httpRequestsMax;httpRequestsMin;replication;results;resultsMax;resultsMin;time;timeMax;timeMin;timestamps;timestampsMax;timestampsMin
-C1;0;false;;0;d632b8166f912f4afd062d64186f2dc6;1766.5;2271;1262;2;6;6;6;1364;1398;1330;1363.5 1363.5 1363.5 1364 1364 1364;1398 1398 1398 1398 1398 1398;1329 1329 1329 1330 1330 1330
-C1;1;false;;0;e00f199d535cd1710bf9be67f04f39e4;1803.5;2308;1299;2;4;4;4;212;214;210;211.5 212 212 212;213 214 214 214;210 210 210 210
-C1;2;false;;0;c4499554f796e968a069e67a8f5d9d1c;1834.5;2339;1330;2;1;1;1;175.5;176;175;175.5;176;175
-C1;3;false;;0;6c0a9fe8be642ee232c10c9996912b97;2279.5;2784;1775;2;14;14;14;1747;1796;1698;1746 1746 1746 1746 1746 1746 1746.5 1746.5 1746.5 1746.5 1747 1747 1747 1747;1795 1795 1795 1795 1795 1795 1795 1795 1795 1795 1796 1796 1796 1796;1697 1697 1697 1697 1697 1697 1698 1698 1698 1698 1698 1698 1698 1698
-C1;4;false;;0;7536d3a2c1abc2a9ac92b1860efa3282;2522.5;3027;2018;2;8;8;8;1360;1373;1347;1355.5 1355.5 1355.5 1355.5 1359 1359 1359 1359;1372 1372 1372 1372 1372 1372 1372 1372;1339 1339 1339 1339 1346 1346 1346 1346
+name;id;error;errorDescription;failures;hash;replication;results;resultsMax;resultsMin;time;timeAggregate;timeMax;timeMin;timestamps;timestampsMax;timestampsMin;timestampsStd;timeStd
+C1;0;false;;0;6e0f167d2eb0e61af0673275ee8f935f;5;5;5;5;17.2;18 17 17 16 18;18;16;16.8 17 17 17 17;18 18 18 18 18;16 16 16 16 16;0.7483314773547882 0.6324555320336759 0.6324555320336759 0.6324555320336759 0.6324555320336759;0.7483314773547882
+C1;1;false;;0;3e279701df97583c2f296ac0c2e5b877;5;5;5;5;17.4;18 17 17 17 18;18;17;17.2 17.2 17.4 17.4 17.4;18 18 18 18 18;16 16 17 17 17;0.7483314773547882 0.7483314773547882 0.4898979485566356 0.4898979485566356 0.4898979485566356;0.4898979485566356
+C1;2;false;;0;4783aeaa4ce9950eafd3a623e1a537f6;5;5;5;5;17.6;19 17 16 20 16;20;16;17.6 17.6 17.6 17.6 17.6;20 20 20 20 20;16 16 16 16 16;1.624807680927192 1.624807680927192 1.624807680927192 1.624807680927192 1.624807680927192;1.624807680927192
 ```
+but without the `timeAggregate` field.
+`timeAggregate` is the execution time of every iteration of a query.
+It is enabled by the flag `outputIterationResults` as documented below.
 
 ## Installation
 
@@ -114,7 +115,7 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     availabilityCheckTimeout: 1_000,
     logger: (message) => console.log(message),
     resultAggregator,
-    outputRawResults: false // false by default, if true will add the raw results (timeAggregate field) to the aggregated results
+    outputIterationResults: false // false by default, if true will add the iteration results (timeAggregate field) to the aggregated results
   });
 
   const results = await runner.run();
