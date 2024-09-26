@@ -141,33 +141,7 @@ docker run \
   --replication 5 \
   --warmup 1
 ```
-[example queries](https://gist.github.com/davidsbatista/cdce57196bf84e3a988427b4d9ef9035) in `./queries/C1.text` from
 
-```
-SELECT ?property ?hasValue ?isValueOf
-WHERE {
-  { <http://dbpedia.org/resource/Broccoli> ?property ?hasValue }
-  UNION
-  { ?isValueOf ?property <http://dbpedia.org/resource/Broccoli> }
-}
-
-SELECT DISTINCT(?isValueOf)
-WHERE {
-   ?isValueOf <http://purl.org/dc/terms/subject> ?value .
-   {
-    SELECT DISTINCT(?value)
-    WHERE {
-        ?resource <http://purl.org/dc/terms/subject> ?value .
-        FILTER regex(?value, "Category:American_.*_descent", "i")
-    }
-  }
-}
-ORDER BY ?isValueOf
-
-SELECT DISTINCT ?ingredient_name
-WHERE { ?food_recipe <http://dbpedia.org/ontology/ingredient> ?ingredient_name }
-ORDER BY ?ingredient_name
-```
 ## License
 
 This code is copyrighted by [Ghent University – imec](http://idlab.ugent.be/)
