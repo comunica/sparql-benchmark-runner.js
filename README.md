@@ -40,14 +40,11 @@ SELECT * WHERE {
 
 By default, it generates CSV output in a form similar to:
 ```csv
-name;id;error;errorDescription;failures;hash;replication;results;resultsMax;resultsMin;time;timeAggregate;timeMax;timeMin;timestamps;timestampsMax;timestampsMin;timestampsStd;timeStd
-C1;0;false;;0;6e0f167d2eb0e61af0673275ee8f935f;5;5;5;5;17.2;18 17 17 16 18;18;16;16.8 17 17 17 17;18 18 18 18 18;16 16 16 16 16;0.7483314773547882 0.6324555320336759 0.6324555320336759 0.6324555320336759 0.6324555320336759;0.7483314773547882
-C1;1;false;;0;3e279701df97583c2f296ac0c2e5b877;5;5;5;5;17.4;18 17 17 17 18;18;17;17.2 17.2 17.4 17.4 17.4;18 18 18 18 18;16 16 17 17 17;0.7483314773547882 0.7483314773547882 0.4898979485566356 0.4898979485566356 0.4898979485566356;0.4898979485566356
-C1;2;false;;0;4783aeaa4ce9950eafd3a623e1a537f6;5;5;5;5;17.6;19 17 16 20 16;20;16;17.6 17.6 17.6 17.6 17.6;20 20 20 20 20;16 16 16 16 16;1.624807680927192 1.624807680927192 1.624807680927192 1.624807680927192 1.624807680927192;1.624807680927192
+name;id;error;errorDescription;failures;hash;replication;results;resultsMax;resultsMin;time;timeMax;timeMin;times;timestamps;timestampsMax;timestampsMin;timestampsStd;timeStd
+C1;0;false;;0;6e0f167d2eb0e61af0673275ee8f935f;5;5;5;5;25.8;33;20;28 33 26 22 20;25.4 25.4 25.4 25.4 25.4;32 32 32 32 32;20 20 20 20 20;4.176122603564219 4.176122603564219 4.176122603564219 4.176122603564219 4.176122603564219;4.578209256903839
+C1;1;false;;0;3e279701df97583c2f296ac0c2e5b877;5;5;5;5;38.6;90;20;27 28 28 20 90;38.4 38.4 38.6 38.6 38.6;89 89 90 90 90;20 20 20 20 20;25.476263462289754 25.476263462289754 25.873538606073968 25.873538606073968 25.873538606073968;25.873538606073968
+C1;2;false;;0;4783aeaa4ce9950eafd3a623e1a537f6;5;5;5;5;35.8;80;20;28 26 80 20 25;35.8 35.8 35.8 35.8 35.8;80 80 80 80 80;20 20 20 20 20;22.25668438918969 22.25668438918969 22.25668438918969 22.25668438918969 22.25668438918969;22.25668438918969
 ```
-but without the `timeAggregate` field.
-`timeAggregate` is the execution time of every iteration of a query.
-It is enabled by the flag `outputIterationResults` as documented below.
 
 ## Installation
 
@@ -60,18 +57,15 @@ npm install sparql-benchmark-runner
 
 ```
 Options:
-  --version                 Show version number                        [boolean]
-  --endpoint                URL of the SPARQL endpoint to send queries to
+  --version      Show version number                                   [boolean]
+  --endpoint     URL of the SPARQL endpoint to send queries to
                                                              [string] [required]
-  --queries                 Directory of the queries         [string] [required]
-  --replication             Number of replication runs     [number] [default: 5]
-  --warmup                  Number of warmup runs          [number] [default: 1]
-  --output                  Destination for the output CSV file
+  --queries      Directory of the queries                    [string] [required]
+  --replication  Number of replication runs                [number] [default: 5]
+  --warmup       Number of warmup runs                     [number] [default: 1]
+  --output       Destination for the output CSV file
                                               [string] [default: "./output.csv"]
-  --timeout                 Timeout value in seconds to use for individual
-                            queries                                     [number]
-  --outputIterationResults  A flag indicating if iteration results should be
-                            produced                  [boolean] [default: false]
+  --timeout      Timeout value in seconds to use for individual queries [number]
   ----help
 ```
 An example input is the following.
@@ -115,7 +109,6 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     availabilityCheckTimeout: 1_000,
     logger: (message) => console.log(message),
     resultAggregator,
-    outputIterationResults: false // false by default, if true will add the iteration results (timeAggregate field) to the aggregated results
   });
 
   const results = await runner.run();

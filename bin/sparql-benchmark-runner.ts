@@ -61,11 +61,6 @@ async function main(): Promise<void> {
         coerce: (arg: number) => arg * 1_000,
         number: true,
       },
-      outputIterationResults: {
-        type: 'boolean',
-        description: 'A flag indicating if iteration results should be produced',
-        default: false,
-      },
     })
     .help()
     .parse();
@@ -77,7 +72,6 @@ async function main(): Promise<void> {
     warmup: args.warmup,
     timeout: args.timeout,
     availabilityCheckTimeout: 1_000,
-    outputIterationResults: args.outputIterationResults,
     logger,
   });
   const results: IAggregateResult[] = await runner.run();

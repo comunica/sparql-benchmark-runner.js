@@ -2,7 +2,7 @@ import { Readable } from 'node:stream';
 import type * as RDF from '@rdfjs/types';
 import type * as fetchSparqlEndpoint from 'fetch-sparql-endpoint';
 import { DataFactory } from 'rdf-data-factory';
-import type { IAggregateResult, IAggregateAndIterationResult, IResult } from '../lib/Result';
+import type { IAggregateResult, IResult } from '../lib/Result';
 import { SparqlBenchmarkRunner } from '../lib/SparqlBenchmarkRunner';
 
 const streamifyArray = require('streamify-array');
@@ -71,6 +71,16 @@ describe('SparqlBenchmarkRunner', () => {
 
   describe('run', () => {
     it('runs the whole query set', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets,
+        replication,
+        warmup,
+        logger,
+        // The timeout is set here to lower than default 10 seconds, or the tests will take forever
+        availabilityCheckTimeout: 1_000,
+      });
+
       const results = await runner.run();
 
       const expectedResults: IAggregateResult[] = [
@@ -91,6 +101,7 @@ describe('SparqlBenchmarkRunner', () => {
           timestampsMax: [ 45, 46, 47 ],
           timestampsMin: [ 31, 32, 33 ],
           timestampsStd: [ 7, 7, 7 ],
+          times: [ 34, 48 ],
         },
         {
           name: 'a',
@@ -109,6 +120,7 @@ describe('SparqlBenchmarkRunner', () => {
           timestampsMax: [ 52, 53, 54 ],
           timestampsMin: [ 38, 39, 40 ],
           timestampsStd: [ 7, 7, 7 ],
+          times: [ 41, 55 ],
         },
         {
           name: 'b',
@@ -127,6 +139,7 @@ describe('SparqlBenchmarkRunner', () => {
           timestampsMax: [ 73, 74, 75 ],
           timestampsMin: [ 59, 60, 61 ],
           timestampsStd: [ 7, 7, 7 ],
+          times: [ 62, 76 ],
         },
         {
           name: 'b',
@@ -145,107 +158,7 @@ describe('SparqlBenchmarkRunner', () => {
           timestampsMax: [ 80, 81, 82 ],
           timestampsMin: [ 66, 67, 68 ],
           timestampsStd: [ 7, 7, 7 ],
-        },
-      ];
-
-      // Calls: (warmup + replication) * queryset size
-      const expectedCalls = Object.values(querySets).flatMap(qs => qs).length * (replication + warmup);
-      expect(fetcher.fetchBindings).toHaveBeenCalledTimes(expectedCalls);
-      expect(fetch).toHaveBeenCalledTimes(expectedCalls);
-
-      expect(results).toEqual(expectedResults);
-    });
-
-    it('runs the whole query set with raw data request', async() => {
-      runner = new SparqlBenchmarkRunner({
-        endpoint,
-        querySets,
-        replication,
-        warmup,
-        logger,
-        // The timeout is set here to lower than default 10 seconds, or the tests will take forever
-        availabilityCheckTimeout: 1_000,
-        outputIterationResults: true,
-      });
-
-      const results = await runner.run();
-
-      const expectedResults: IAggregateAndIterationResult[] = [
-        {
-          name: 'a',
-          id: '0',
-          failures: 0,
-          replication,
-          hash: mockedResultHash,
-          results: 3,
-          resultsMax: 3,
-          resultsMin: 3,
-          time: 41,
-          timeMax: 48,
-          timeMin: 34,
-          timeStd: 7,
-          timestamps: [ 38, 39, 40 ],
-          timestampsMax: [ 45, 46, 47 ],
-          timestampsMin: [ 31, 32, 33 ],
-          timestampsStd: [ 7, 7, 7 ],
-          timeAggregate: [ 34, 48 ],
-        },
-        {
-          name: 'a',
-          id: '1',
-          failures: 0,
-          replication,
-          time: 48,
-          timeMax: 55,
-          timeMin: 41,
-          timeStd: 7,
-          results: 3,
-          resultsMax: 3,
-          resultsMin: 3,
-          hash: mockedResultHash,
-          timestamps: [ 45, 46, 47 ],
-          timestampsMax: [ 52, 53, 54 ],
-          timestampsMin: [ 38, 39, 40 ],
-          timestampsStd: [ 7, 7, 7 ],
-          timeAggregate: [ 41, 55 ],
-        },
-        {
-          name: 'b',
-          id: '0',
-          failures: 0,
-          replication,
-          time: 69,
-          timeMax: 76,
-          timeMin: 62,
-          timeStd: 7,
-          results: 3,
-          resultsMax: 3,
-          resultsMin: 3,
-          hash: mockedResultHash,
-          timestamps: [ 66, 67, 68 ],
-          timestampsMax: [ 73, 74, 75 ],
-          timestampsMin: [ 59, 60, 61 ],
-          timestampsStd: [ 7, 7, 7 ],
-          timeAggregate: [ 62, 76 ],
-        },
-        {
-          name: 'b',
-          id: '1',
-          failures: 0,
-          replication,
-          hash: mockedResultHash,
-          results: 3,
-          resultsMax: 3,
-          resultsMin: 3,
-          time: 76,
-          timeMax: 83,
-          timeMin: 69,
-          timeStd: 7,
-          timestamps: [ 73, 74, 75 ],
-          timestampsMax: [ 80, 81, 82 ],
-          timestampsMin: [ 66, 67, 68 ],
-          timestampsStd: [ 7, 7, 7 ],
-          timeAggregate: [ 69, 83 ],
+          times: [ 69, 83 ],
         },
       ];
 

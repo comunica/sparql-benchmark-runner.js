@@ -1,4 +1,4 @@
-import type { IResult, IAggregateResult, IAggregateAndIterationResult } from './Result';
+import type { IResult, IAggregateResult } from './Result';
 
 export class ResultAggregator implements IResultAggregator {
   /**
@@ -34,6 +34,7 @@ export class ResultAggregator implements IResultAggregator {
         timeMax: Number.NEGATIVE_INFINITY,
         timeMin: Number.POSITIVE_INFINITY,
         timeStd: 0,
+        times: [],
         failures: 0,
         replication: resultGroup.length,
         results: 0,
@@ -52,6 +53,7 @@ export class ResultAggregator implements IResultAggregator {
       let maxNumTimestamp = 0;
       for (const result of resultGroup) {
         if (result.error) {
+          aggregate.times.push(Number.NaN);
           aggregate.error = result.error;
           aggregate.failures++;
           // If no results and error we don't register
@@ -60,6 +62,7 @@ export class ResultAggregator implements IResultAggregator {
           }
         } else {
           successfulExecutions++;
+          aggregate.times.push(result.time);
           aggregate.time += result.time;
           aggregate.results += result.results;
           aggregate.resultsMax = Math.max(aggregate.resultsMax, result.results);
@@ -151,33 +154,6 @@ export class ResultAggregator implements IResultAggregator {
     };
   }
 
-  public aggregateRawGroupedResults(
-    groupedResults: Record<string, IResult[]>,
-    aggregateResults: IAggregateResult[],
-  ): IAggregateAndIterationResult[] {
-    const rawAggregateResults: IAggregateAndIterationResult[] = [];
-    const aggregateResultsMap: Map<string, IAggregateResult> = new Map(
-      aggregateResults.map(result => [ `${result.name}:${result.id}`, result ]),
-    );
-
-    for (const [ id, resultsSet ] of Object.entries(groupedResults)) {
-      // There will be always an aggregate results because it has been made from the group results
-      const currentAggregateResults = aggregateResultsMap.get(id)!;
-      const currentRawAggregateResult: IAggregateAndIterationResult = {
-        ...currentAggregateResults,
-        timeAggregate: [],
-      };
-      if (currentAggregateResults.error) {
-        currentRawAggregateResult.error = currentAggregateResults.error;
-      }
-      for (const { time, error } of resultsSet) {
-        currentRawAggregateResult.timeAggregate.push(error ? Number.NaN : time);
-      }
-      rawAggregateResults.push(currentRawAggregateResult);
-    }
-    return rawAggregateResults;
-  }
-
   /**
    * Produce aggregated query results from a set of single execution results.
    * @param results Individual query execution results.
@@ -188,23 +164,10 @@ export class ResultAggregator implements IResultAggregator {
     const aggregateResults = this.aggregateGroupedResults(groupedResults);
     return aggregateResults;
   }
-
-  /**
-   * Produce raw aggregated query results from a set of single execution results.
-   * @param results Individual query execution results.
-   * @returns Raw aggregated results per individual query.
-   */
-  public aggregateIterationResults(results: IResult[]): IAggregateAndIterationResult[] {
-    const groupedResults = this.groupResults(results);
-    const aggregateResults = this.aggregateGroupedResults(groupedResults);
-    const aggregateRawResults = this.aggregateRawGroupedResults(groupedResults, aggregateResults);
-    return aggregateRawResults;
-  }
 }
 
 export interface IResultAggregator {
   aggregateResults: (results: IResult[]) => IAggregateResult[];
-  aggregateIterationResults: (results: IResult[]) => IAggregateAndIterationResult[];
 }
 
 export interface IProcessedTimestamps {

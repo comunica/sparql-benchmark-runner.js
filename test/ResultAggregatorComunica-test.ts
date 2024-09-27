@@ -59,6 +59,7 @@ describe('ResultAggregatorComunica', () => {
   });
 
   it('produces the aggregate across one result', () => {
+    const resultInput = [ results[0] ];
     const expected: IAggregateResult[] = [{
       name: 'a',
       id: '0',
@@ -80,11 +81,13 @@ describe('ResultAggregatorComunica', () => {
       httpRequestsMax: 10,
       httpRequestsMin: 10,
       httpRequestsStd: 0,
+      times: resultInput.map(result => result.time),
     }];
-    expect(aggregator.aggregateResults([ results[0] ])).toEqual(expected);
+    expect(aggregator.aggregateResults(resultInput)).toEqual(expected);
   });
 
   it('produces the aggregate across multiple results', () => {
+    const resultInput = results.slice(0, 2);
     const expected: IAggregateResult[] = [{
       name: 'a',
       id: '0',
@@ -106,11 +109,13 @@ describe('ResultAggregatorComunica', () => {
       httpRequestsMax: 20,
       httpRequestsMin: 10,
       httpRequestsStd: 5,
+      times: resultInput.map(result => result.time),
     }];
-    expect(aggregator.aggregateResults(results.slice(0, 2))).toEqual(expected);
+    expect(aggregator.aggregateResults(resultInput)).toEqual(expected);
   });
 
   it('produces the aggregate across multiple results with errors', () => {
+    const resultInput = results.slice(0, 3);
     const expected: IAggregateResult[] = [{
       name: 'a',
       id: '0',
@@ -133,11 +138,13 @@ describe('ResultAggregatorComunica', () => {
       httpRequestsMax: 20,
       httpRequestsMin: 10,
       httpRequestsStd: 5,
+      times: resultInput.map(({ time, error }) => error ? Number.NaN : time),
     }];
     expect(aggregator.aggregateResults(results.slice(0, 3))).toEqual(expected);
   });
 
   it('produces the aggregate across multiple results with inconsistent hashes', () => {
+    const resultInput = [ results[0], results[4] ];
     const expected: IAggregateResult[] = [{
       name: 'a',
       id: '0',
@@ -160,11 +167,13 @@ describe('ResultAggregatorComunica', () => {
       httpRequestsMax: 10,
       httpRequestsMin: 10,
       httpRequestsStd: 0,
+      times: resultInput.map(({ time, error }) => error ? Number.NaN : time),
     }];
-    expect(aggregator.aggregateResults([ results[0], results[4] ])).toEqual(expected);
+    expect(aggregator.aggregateResults(resultInput)).toEqual(expected);
   });
 
   it('produces the aggregate across multiple results with different result counts', () => {
+    const resultInput = [ ...results.slice(0, 2), results[3] ];
     const expected: IAggregateResult[] = [{
       name: 'a',
       id: '0',
@@ -187,6 +196,7 @@ describe('ResultAggregatorComunica', () => {
       httpRequestsMax: 40,
       httpRequestsMin: 10,
       httpRequestsStd: 12.472191289246473,
+      times: resultInput.map(({ time, error }) => error ? Number.NaN : time),
     }];
     expect(aggregator.aggregateResults([ ...results.slice(0, 2), results[3] ])).toEqual(expected);
   });

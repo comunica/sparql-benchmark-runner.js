@@ -28,16 +28,10 @@ export interface IAggregateResult extends IResult {
   timeMin: number;
   timeMax: number;
   timeStd: number;
+  times: number[];
   timestampsMin: number[];
   timestampsMax: number[];
   timestampsStd: number[];
   replication: number;
   failures: number;
-}
-
-/**
- * Aggregate the iteration results from multiple execution of a query.
- */
-export interface IAggregateAndIterationResult extends IAggregateResult {
-  timeAggregate: number[];
 }
