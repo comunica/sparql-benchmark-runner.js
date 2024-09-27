@@ -30,6 +30,15 @@ export class ResultAggregatorComunica extends ResultAggregator {
         groupedAggregates[key][0].httpRequests = requestsSum / successfulExecutions;
         groupedAggregates[key][0].httpRequestsMax = requestsMax;
         groupedAggregates[key][0].httpRequestsMin = requestsMin;
+        groupedAggregates[key][0].httpRequestsStd = 0;
+
+        for (const { httpRequests, error } of resultGroup) {
+          if (!error) {
+            groupedAggregates[key][0].httpRequestsStd += (httpRequests - groupedAggregates[key][0].httpRequests) ** 2;
+          }
+        }
+        groupedAggregates[key][0].httpRequestsStd =
+         Math.sqrt(groupedAggregates[key][0].httpRequestsStd / successfulExecutions);
       }
     }
     return aggregateResults;

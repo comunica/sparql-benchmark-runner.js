@@ -40,12 +40,10 @@ SELECT * WHERE {
 
 By default, it generates CSV output in a form similar to:
 ```csv
-name;id;error;errorDescription;failures;hash;httpRequests;httpRequestsMax;httpRequestsMin;replication;results;resultsMax;resultsMin;time;timeMax;timeMin;timestamps;timestampsMax;timestampsMin
-C1;0;false;;0;d632b8166f912f4afd062d64186f2dc6;1766.5;2271;1262;2;6;6;6;1364;1398;1330;1363.5 1363.5 1363.5 1364 1364 1364;1398 1398 1398 1398 1398 1398;1329 1329 1329 1330 1330 1330
-C1;1;false;;0;e00f199d535cd1710bf9be67f04f39e4;1803.5;2308;1299;2;4;4;4;212;214;210;211.5 212 212 212;213 214 214 214;210 210 210 210
-C1;2;false;;0;c4499554f796e968a069e67a8f5d9d1c;1834.5;2339;1330;2;1;1;1;175.5;176;175;175.5;176;175
-C1;3;false;;0;6c0a9fe8be642ee232c10c9996912b97;2279.5;2784;1775;2;14;14;14;1747;1796;1698;1746 1746 1746 1746 1746 1746 1746.5 1746.5 1746.5 1746.5 1747 1747 1747 1747;1795 1795 1795 1795 1795 1795 1795 1795 1795 1795 1796 1796 1796 1796;1697 1697 1697 1697 1697 1697 1698 1698 1698 1698 1698 1698 1698 1698
-C1;4;false;;0;7536d3a2c1abc2a9ac92b1860efa3282;2522.5;3027;2018;2;8;8;8;1360;1373;1347;1355.5 1355.5 1355.5 1355.5 1359 1359 1359 1359;1372 1372 1372 1372 1372 1372 1372 1372;1339 1339 1339 1339 1346 1346 1346 1346
+name;id;error;errorDescription;failures;hash;replication;results;resultsMax;resultsMin;time;timeMax;timeMin;times;timestamps;timestampsMax;timestampsMin;timestampsStd;timeStd
+C1;0;false;;0;6e0f167d2eb0e61af0673275ee8f935f;5;5;5;5;25.8;33;20;28 33 26 22 20;25.4 25.4 25.4 25.4 25.4;32 32 32 32 32;20 20 20 20 20;4.176122603564219 4.176122603564219 4.176122603564219 4.176122603564219 4.176122603564219;4.578209256903839
+C1;1;false;;0;3e279701df97583c2f296ac0c2e5b877;5;5;5;5;38.6;90;20;27 28 28 20 90;38.4 38.4 38.6 38.6 38.6;89 89 90 90 90;20 20 20 20 20;25.476263462289754 25.476263462289754 25.873538606073968 25.873538606073968 25.873538606073968;25.873538606073968
+C1;2;false;;0;4783aeaa4ce9950eafd3a623e1a537f6;5;5;5;5;35.8;80;20;28 26 80 20 25;35.8 35.8 35.8 35.8 35.8;80 80 80 80 80;20 20 20 20 20;22.25668438918969 22.25668438918969 22.25668438918969 22.25668438918969 22.25668438918969;22.25668438918969
 ```
 
 ## Installation
@@ -55,6 +53,22 @@ npm install sparql-benchmark-runner
 ```
 
 ## Usage
+`sparql-benchmark-runner` can be used from the CLI with the the following options.
+
+```
+Options:
+  --version      Show version number                                   [boolean]
+  --endpoint     URL of the SPARQL endpoint to send queries to
+                                                             [string] [required]
+  --queries      Directory of the queries                    [string] [required]
+  --replication  Number of replication runs                [number] [default: 5]
+  --warmup       Number of warmup runs                     [number] [default: 1]
+  --output       Destination for the output CSV file
+                                              [string] [default: "./output.csv"]
+  --timeout      Timeout value in seconds to use for individual queries [number]
+  ----help
+```
+An example input is the following.
 
 ```bash
 sparql-benchmark-runner \
@@ -113,12 +127,12 @@ docker run \
   --rm \
   --interactive \
   --tty \
-  --volume $(pwd)/output.csv:/tmp/output.csv \
-  --volume $(pwd)/queries:/tmp/queries \
+  --volume $(pwd)/output.csv:/output.csv \
+  --volume $(pwd)/queries:/queries \
   comunica/sparql-benchmark-runner \
   --endpoint https://dbpedia.org/sparql \
-  --queries /tmp/queries \
-  --output /tmp/output.csv \
+  --queries /queries \
+  --output /output.csv \
   --replication 5 \
   --warmup 1
 ```

@@ -33,6 +33,8 @@ export class ResultAggregator implements IResultAggregator {
         time: 0,
         timeMax: Number.NEGATIVE_INFINITY,
         timeMin: Number.POSITIVE_INFINITY,
+        timeStd: 0,
+        times: [],
         failures: 0,
         replication: resultGroup.length,
         results: 0,
@@ -42,6 +44,7 @@ export class ResultAggregator implements IResultAggregator {
         timestamps: [],
         timestampsMax: [],
         timestampsMin: [],
+        timestampsStd: [],
       };
       let inconsistentResults = false;
       let successfulExecutions = 0;
@@ -50,6 +53,7 @@ export class ResultAggregator implements IResultAggregator {
       let maxNumTimestamp = 0;
       for (const result of resultGroup) {
         if (result.error) {
+          aggregate.times.push(Number.NaN);
           aggregate.error = result.error;
           aggregate.failures++;
           // If no results and error we don't register
@@ -58,6 +62,7 @@ export class ResultAggregator implements IResultAggregator {
           }
         } else {
           successfulExecutions++;
+          aggregate.times.push(result.time);
           aggregate.time += result.time;
           aggregate.results += result.results;
           aggregate.resultsMax = Math.max(aggregate.resultsMax, result.results);
@@ -92,7 +97,15 @@ export class ResultAggregator implements IResultAggregator {
         aggregate.timestamps = timestampsProcessed.timestampsAverage;
         aggregate.timestampsMin = timestampsProcessed.timestampsMin;
         aggregate.timestampsMax = timestampsProcessed.timestampsMax;
+        aggregate.timestampsStd = timestampsProcessed.timestampsStd;
       }
+
+      for (const { time, error } of resultGroup) {
+        if (!error) {
+          aggregate.timeStd += (time - aggregate.time) ** 2;
+        }
+      }
+      aggregate.timeStd = Math.sqrt(aggregate.timeStd / successfulExecutions);
 
       // Convert all possible leftover infinity / -infinity back to 0 for backward compatibility
       aggregate.resultsMin = Number.isFinite(aggregate.resultsMin) ? aggregate.resultsMin : 0;
@@ -106,10 +119,11 @@ export class ResultAggregator implements IResultAggregator {
   }
 
   public averageTimeStamps(timestampsAll: number[][], maxNumTimestamps: number): IProcessedTimestamps {
-    const timestampsSum: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
-    const timestampsMax: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.NEGATIVE_INFINITY);
-    const timestampsMin: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(Number.POSITIVE_INFINITY);
-    const nObsTimestamp: number[] = <number[]> Array.from({ length: maxNumTimestamps }).fill(0);
+    const timestampsSum: number[] = <number[]>Array.from({ length: maxNumTimestamps }).fill(0);
+    const timestampsMax: number[] = <number[]>Array.from({ length: maxNumTimestamps }).fill(Number.NEGATIVE_INFINITY);
+    const timestampsMin: number[] = <number[]>Array.from({ length: maxNumTimestamps }).fill(Number.POSITIVE_INFINITY);
+    const nObsTimestamp: number[] = <number[]>Array.from({ length: maxNumTimestamps }).fill(0);
+    const timestampsStd: number[] = <number[]>Array.from({ length: maxNumTimestamps }).fill(0);
 
     for (const timestamps of timestampsAll) {
       for (const [ j, ts ] of timestamps.entries()) {
@@ -119,10 +133,24 @@ export class ResultAggregator implements IResultAggregator {
         nObsTimestamp[j]++;
       }
     }
+
+    const timestampsAverage = timestampsSum.map((ts, i) => ts / nObsTimestamp[i]);
+
+    for (const timestamps of timestampsAll) {
+      for (const [ j, ts ] of timestamps.entries()) {
+        timestampsStd[j] += (ts - timestampsAverage[j]) ** 2;
+      }
+    }
+
+    for (let i = 0; i < timestampsStd.length; i++) {
+      timestampsStd[i] = Math.sqrt(timestampsStd[i] / nObsTimestamp[i]);
+    }
+
     return {
       timestampsMax,
       timestampsMin,
-      timestampsAverage: timestampsSum.map((ts, i) => ts / nObsTimestamp[i]),
+      timestampsAverage,
+      timestampsStd,
     };
   }
 
@@ -146,4 +174,5 @@ export interface IProcessedTimestamps {
   timestampsMax: number[];
   timestampsMin: number[];
   timestampsAverage: number[];
+  timestampsStd: number[];
 }
