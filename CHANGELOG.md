@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.3.0"></a>
+## [v4.3.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.2.0...v4.3.0) - 2024-09-27
+
+### Added
+* [Add times and timesStd to output](https://github.com/comunica/sparql-benchmark-runner.js/commit/c11a13f7d2350473c88a31a3bef636e1e06c910b)
+
 <a name="v4.2.0"></a>
 ## [v4.2.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.1.0...v4.2.0) - 2024-07-02
 
