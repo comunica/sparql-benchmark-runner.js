@@ -11,6 +11,7 @@ import { ResultAggregatorComunica } from './ResultAggregatorComunica';
  */
 export class SparqlBenchmarkRunner {
   protected readonly endpoint: string;
+  protected readonly endpointUpCheck: string;
   protected readonly timeout?: number;
   protected readonly requestDelay?: number;
   protected readonly replication: number;
@@ -26,6 +27,7 @@ export class SparqlBenchmarkRunner {
     this.logger = options.logger;
     this.resultAggregator = options.resultAggregator ?? new ResultAggregatorComunica();
     this.endpoint = options.endpoint;
+    this.endpointUpCheck = options.endpointUpCheck ?? options.endpoint;
     this.querySets = options.querySets;
     this.replication = options.replication;
     this.warmup = options.warmup;
@@ -214,7 +216,7 @@ export class SparqlBenchmarkRunner {
       timeoutHandle = setTimeout(() => resolve(false), this.availabilityCheckTimeout);
     });
     const promiseFetch = new Promise<boolean>((resolve) => {
-      fetch(this.endpoint, {
+      fetch(this.endpointUpCheck, {
         method: 'HEAD',
       }).then(respose => resolve(respose.ok)).catch(() => resolve(false));
     });
@@ -261,6 +263,10 @@ export interface ISparqlBenchmarkRunnerArgs {
    * URL of the SPARQL endpoint to send queries to.
    */
   endpoint: string;
+  /**
+   * URL that will be checked in a loop until it gives a 200 response, before executing queries.
+   */
+  endpointUpCheck?: string;
   /**
    * Mapping of query set name to an array of SPARQL query strings in this set.
    */
