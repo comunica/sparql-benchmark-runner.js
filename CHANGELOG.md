@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.4.0"></a>
+## [v4.4.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.3.0...v4.4.0) - 2024-10-23
+
+### Added
+* [Add endpointUpCheck option](https://github.com/comunica/sparql-benchmark-runner.js/commit/a4138d328731ea4e63215a1e6cdb70da5e321b44)
+
 <a name="v4.3.0"></a>
 ## [v4.3.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.2.0...v4.3.0) - 2024-09-27
 
