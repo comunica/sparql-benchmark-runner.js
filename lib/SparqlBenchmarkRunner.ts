@@ -217,7 +217,7 @@ export class SparqlBenchmarkRunner {
     });
     const promiseFetch = new Promise<boolean>((resolve) => {
       fetch(this.endpointUpCheck, {
-        method: 'HEAD',
+        method: 'GET',
       }).then(respose => resolve(respose.ok)).catch(() => resolve(false));
     });
     const available = await Promise.race([ promiseTimeout, promiseFetch ]);
