@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v4.5.0"></a>
+## [v4.5.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.4.0...v4.5.0) - 2025-02-28
+
+### Changed
+* [Send alive requests using GET instead of HEAD](https://github.com/comunica/sparql-benchmark-runner.js/commit/fc19cdbc577d1bef3805917f69306aa453ee70f0)
+
 <a name="v4.4.0"></a>
 ## [v4.4.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.3.0...v4.4.0) - 2024-10-23
 
