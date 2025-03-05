@@ -18,22 +18,44 @@ export interface IResult extends IResultMetadata {
 
 /**
  * Aggregate result for multiple executions of a query.
- * timestamps from IResult has the meaning of average timestamps.
- * The timestamps are the arrival of a results of the query whereas the times
- * are the query execution times.
  */
 export interface IAggregateResult extends IResult {
+  // Minimum number of results across repetitions.
   resultsMin: number;
+
+  // Maximum number of results across repetitions.
   resultsMax: number;
+
+  // Minimum query execution time across repetitions.
   timeMin: number;
+
+  // Maximum query execution time across repetitions.
   timeMax: number;
+
+  // Standard deviation of execution times across repetitions.
   timeStd: number;
+
+  // The query execution times for each repetition.
   times: number[];
+
+  // Average result arrival timestamps.
   timestamps: number[];
+
+  // Minimum result arrival timestamps across repetitions.
   timestampsMin: number[];
+
+  // Maximum result arrival timestamps across repetitions.
   timestampsMax: number[];
+
+  // Standard deviation of result arrival timestamps across repetitions.
   timestampsStd: number[];
+
+  // Number of times the query was executed.
   replication: number;
+
+  // Number of failed repetitions.
   failures: number;
-  timestampsRaw?: number[][];
+
+  // Raw timestamps for all repetitions, preserving individual result arrival times.
+  timestampsAll?: number[][];
 }
