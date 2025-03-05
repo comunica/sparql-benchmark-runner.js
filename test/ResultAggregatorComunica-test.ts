@@ -4,7 +4,7 @@ import { ResultAggregatorComunica } from '../lib/ResultAggregatorComunica';
 describe('ResultAggregatorComunica', () => {
   const exampleError = new Error('Example error');
   const hashError = new Error('Result hash inconsistency');
-  const aggregator = new ResultAggregatorComunica();
+  const aggregator = new ResultAggregatorComunica(false);
   let results: IResult[];
 
   beforeEach(() => {

@@ -4,7 +4,7 @@ import { ResultAggregator } from '../lib/ResultAggregator';
 describe('ResultAggregator', () => {
   const exampleError = new Error('Example error');
   const hashError = new Error('Result hash inconsistency');
-  const aggregator = new ResultAggregator();
+  const aggregator = new ResultAggregator(false);
   let results: IResult[];
   let noResults: IResult[];
 

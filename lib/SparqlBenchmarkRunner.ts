@@ -25,7 +25,7 @@ export class SparqlBenchmarkRunner {
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.logger = options.logger;
-    this.resultAggregator = options.resultAggregator ?? new ResultAggregatorComunica();
+    this.resultAggregator = options.resultAggregator ?? new ResultAggregatorComunica(true);
     this.endpoint = options.endpoint;
     this.endpointUpCheck = options.endpointUpCheck ?? options.endpoint;
     this.querySets = options.querySets;

@@ -29,9 +29,11 @@ export interface IAggregateResult extends IResult {
   timeMax: number;
   timeStd: number;
   times: number[];
+  timestamps: number[];
   timestampsMin: number[];
   timestampsMax: number[];
   timestampsStd: number[];
   replication: number;
   failures: number;
+  timestampsRaw?: number[][];
 }

@@ -101,6 +101,10 @@ describe('SparqlBenchmarkRunner', () => {
           timestampsMax: [ 45, 46, 47 ],
           timestampsMin: [ 31, 32, 33 ],
           timestampsStd: [ 7, 7, 7 ],
+          timestampsRaw: [
+            [ 31, 32, 33 ],
+            [ 45, 46, 47 ],
+          ],
           times: [ 34, 48 ],
         },
         {
@@ -119,6 +123,10 @@ describe('SparqlBenchmarkRunner', () => {
           timestamps: [ 45, 46, 47 ],
           timestampsMax: [ 52, 53, 54 ],
           timestampsMin: [ 38, 39, 40 ],
+          timestampsRaw: [
+            [ 38, 39, 40 ],
+            [ 52, 53, 54 ],
+          ],
           timestampsStd: [ 7, 7, 7 ],
           times: [ 41, 55 ],
         },
@@ -138,6 +146,10 @@ describe('SparqlBenchmarkRunner', () => {
           timestamps: [ 66, 67, 68 ],
           timestampsMax: [ 73, 74, 75 ],
           timestampsMin: [ 59, 60, 61 ],
+          timestampsRaw: [
+            [ 59, 60, 61 ],
+            [ 73, 74, 75 ],
+          ],
           timestampsStd: [ 7, 7, 7 ],
           times: [ 62, 76 ],
         },
@@ -157,6 +169,10 @@ describe('SparqlBenchmarkRunner', () => {
           timestamps: [ 73, 74, 75 ],
           timestampsMax: [ 80, 81, 82 ],
           timestampsMin: [ 66, 67, 68 ],
+          timestampsRaw: [
+            [ 66, 67, 68 ],
+            [ 80, 81, 82 ],
+          ],
           timestampsStd: [ 7, 7, 7 ],
           times: [ 69, 83 ],
         },

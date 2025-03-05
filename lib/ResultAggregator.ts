@@ -1,6 +1,12 @@
 import type { IResult, IAggregateResult } from './Result';
 
 export class ResultAggregator implements IResultAggregator {
+  private readonly rawTimestamps: boolean;
+
+  public constructor(rawTimestamps: boolean) {
+    this.rawTimestamps = rawTimestamps;
+  }
+
   /**
    * Groups query execution results by name and id.
    * @param results Ungrouped results.
@@ -45,7 +51,9 @@ export class ResultAggregator implements IResultAggregator {
         timestampsMax: [],
         timestampsMin: [],
         timestampsStd: [],
+        ...(this.rawTimestamps ? { timestampsRaw: []} : {}),
       };
+
       let inconsistentResults = false;
       let successfulExecutions = 0;
       const timestampsAll: number[][] = [];
@@ -98,6 +106,9 @@ export class ResultAggregator implements IResultAggregator {
         aggregate.timestampsMin = timestampsProcessed.timestampsMin;
         aggregate.timestampsMax = timestampsProcessed.timestampsMax;
         aggregate.timestampsStd = timestampsProcessed.timestampsStd;
+        if (this.rawTimestamps) {
+          aggregate.timestampsRaw = timestampsAll;
+        }
       }
 
       for (const { time, error } of resultGroup) {
