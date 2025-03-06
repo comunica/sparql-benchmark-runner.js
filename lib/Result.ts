@@ -57,5 +57,5 @@ export interface IAggregateResult extends IResult {
   failures: number;
 
   // Raw timestamps for all repetitions, preserving individual result arrival times.
-  timestampsAll?: number[][];
+  timestampsAll: number[][];
 }
