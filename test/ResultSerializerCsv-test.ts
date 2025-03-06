@@ -71,17 +71,17 @@ describe('ResultSerializerCsv', () => {
       'symbolWithoutValue',
       'time',
       'timestamps',
-      'timestampsAll',
       'undefinedValue',
+      'timestampsAll',
     ]);
   });
 
   it('should properly serialize results', async() => {
     const expectedLines = [
       // eslint-disable-next-line max-len
-      'name;id;bigintValue;error;errorDescription;functionValue;hash;objectValue;results;symbolValue;symbolWithoutValue;time;timestamps;timestampsAll;undefinedValue\n',
+      'name;id;bigintValue;error;errorDescription;functionValue;hash;objectValue;results;symbolValue;symbolWithoutValue;time;timestamps;undefinedValue;timestampsAll\n',
       'a;0;1;false;;functionValue;hash;;0;;;0;;;\n',
-      'a;1;;false;;;result;;1;Example symbol;;1;1;"[[1]]";\n',
+      'a;1;;false;;;result;;1;Example symbol;;1;1;;"[[1]]"\n',
       'a;2;;true;Example error;;error;ReadableStream;0;;;0;;;\n',
     ];
     await resultSerializer.serialize('results.csv', results);

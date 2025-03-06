@@ -9,13 +9,14 @@ export abstract class ResultSerializer implements IResultSerializer {
 
   public async keys<T extends IResult>(results: T[]): Promise<string[]> {
     const keys = new Set<string>(results.flatMap(result => Object.keys(result)));
-    for (const key of [ 'name', 'id', ...this.ignoreKeys ?? [] ]) {
+    for (const key of [ 'name', 'id', 'timestampsAll', ...this.ignoreKeys ?? [] ]) {
       keys.delete(key);
     }
     return [
       'name',
       'id',
       ...[ ...keys.values() ].sort((keyA, keyB) => keyA.localeCompare(keyB)),
+      'timestampsAll',
     ];
   }
 
