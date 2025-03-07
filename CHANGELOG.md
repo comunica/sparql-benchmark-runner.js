@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.0.0"></a>
+## [v5.0.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.5.0...v5.0.0) - 2025-03-07
+
+### BREAKING CHANGES
+* [Include raw timestamps in aggregate results](https://github.com/comunica/sparql-benchmark-runner.js/commit/25246b887b4d68bd7b4f8bf48003750eb5997acd)
+	Strictly a breaking change, but won't be for most users, as it just adds a new column (as last column) to the resulting CSV file.
+
 <a name="v4.5.0"></a>
 ## [v4.5.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v4.4.0...v4.5.0) - 2025-02-28
 
