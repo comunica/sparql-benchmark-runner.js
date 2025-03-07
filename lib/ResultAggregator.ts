@@ -45,7 +45,9 @@ export class ResultAggregator implements IResultAggregator {
         timestampsMax: [],
         timestampsMin: [],
         timestampsStd: [],
+        timestampsAll: [],
       };
+
       let inconsistentResults = false;
       let successfulExecutions = 0;
       const timestampsAll: number[][] = [];
@@ -98,6 +100,7 @@ export class ResultAggregator implements IResultAggregator {
         aggregate.timestampsMin = timestampsProcessed.timestampsMin;
         aggregate.timestampsMax = timestampsProcessed.timestampsMax;
         aggregate.timestampsStd = timestampsProcessed.timestampsStd;
+        aggregate.timestampsAll = timestampsAll;
       }
 
       for (const { time, error } of resultGroup) {

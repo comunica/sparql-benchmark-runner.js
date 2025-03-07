@@ -52,7 +52,12 @@ export class ResultSerializerCsv extends ResultSerializer {
               break;
             case 'object':
               if (Array.isArray(value)) {
-                values.push(value.join(this.arraySeparator));
+                // Nested arrays are saved as strings
+                if (Array.isArray(value[0])) {
+                  values.push(`"${JSON.stringify(value)}"`);
+                } else {
+                  values.push(value.join(this.arraySeparator));
+                }
               } else if (value instanceof Error) {
                 values.push(value.message);
               } else {

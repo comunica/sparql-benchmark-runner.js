@@ -53,6 +53,7 @@ describe('ResultAggregator', () => {
           timestamps: [ 10, 20, 30 ],
         },
       ];
+
       noResults = [
         {
           name: 'a',
@@ -91,6 +92,7 @@ describe('ResultAggregator', () => {
         resultsMin: 3,
         hash: 'a',
         timestamps: [ 10, 20, 30 ],
+        timestampsAll: [[ 10, 20, 30 ]],
         timestampsMax: [ 10, 20, 30 ],
         timestampsMin: [ 10, 20, 30 ],
         timestampsStd: [ 0, 0, 0 ],
@@ -115,6 +117,7 @@ describe('ResultAggregator', () => {
         resultsMin: 3,
         hash: 'a',
         timestamps: [ 15, 25, 35 ],
+        timestampsAll: [[ 10, 20, 30 ], [ 20, 30, 40 ]],
         timestampsMax: [ 20, 30, 40 ],
         timestampsMin: [ 10, 20, 30 ],
         timestampsStd: [ 5, 5, 5 ],
@@ -139,6 +142,7 @@ describe('ResultAggregator', () => {
         resultsMin: 0,
         hash: '',
         timestamps: [ ],
+        timestampsAll: [ ],
         timestampsMax: [ ],
         timestampsMin: [ ],
         timestampsStd: [ ],
@@ -164,6 +168,7 @@ describe('ResultAggregator', () => {
         resultsMin: 3,
         hash: 'a',
         timestamps: [ 20, 25, 35 ],
+        timestampsAll: [[ 10, 20, 30 ], [ 20, 30, 40 ], [ 30 ]],
         timestampsMax: [ 30, 30, 40 ],
         timestampsMin: [ 10, 20, 30 ],
         timestampsStd: [ 8.16496580927726, 5, 5 ],
@@ -189,6 +194,7 @@ describe('ResultAggregator', () => {
         resultsMin: 3,
         hash: 'a',
         timestamps: [ 10, 20, 30 ],
+        timestampsAll: [[ 10, 20, 30 ], [ 10, 20, 30 ]],
         timestampsMax: [ 10, 20, 30 ],
         timestampsMin: [ 10, 20, 30 ],
         timestampsStd: [ 0, 0, 0 ],
@@ -214,6 +220,7 @@ describe('ResultAggregator', () => {
         resultsMin: 3,
         hash: 'a',
         timestamps: [ 16.666666666666668, 26.666666666666668, 36.666666666666664, 50 ],
+        timestampsAll: [[ 10, 20, 30 ], [ 20, 30, 40 ], [ 20, 30, 40, 50 ]],
         timestampsMax: [ 20, 30, 40, 50 ],
         timestampsMin: [ 10, 20, 30, 50 ],
         timestampsStd: [ 4.714045207910316, 4.714045207910316, 4.714045207910317, 0 ],
