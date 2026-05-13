@@ -53,6 +53,9 @@ npm install sparql-benchmark-runner
 ```
 
 ## Usage
+
+### Command Line Interface (CLI)
+
 `sparql-benchmark-runner` can be used from the CLI with the the following options.
 
 ```
@@ -83,6 +86,8 @@ sparql-benchmark-runner \
   --replication 5 \
   --warmup 1
 ```
+
+### As a JavaScript Library
 
 When used as a JavaScript library, the runner can be configured with different query loaders,
 result aggregators and result serializers to accommodate special use cases.
@@ -124,10 +129,98 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
 }
 ```
 
+### Sequence Metadata
+
 To enable sequence metadata from the CLI, add `--metadata`. Raw JSON output is
 only written when `--outputRaw` is provided, or automatically to
 `./output-raw.json` when `--metadata` is enabled. Cache invalidation requests are
 disabled by default and can be enabled with `--invalidateCacheAfterQuerySet`.
+
+An example metadata file for a two-query sequence is structured as follows:
+
+```json
+{
+  "user": {
+    "user": "http://solidbench-server:3000/pods/00000000000000000933/profile/card#me",
+    "transitionProbability": 0.09954255358650524
+  },
+  "sequenceElements": [
+    {
+      "session": {
+        "task": "Messages",
+        "sessionLength": 5,
+        "sessionId": 0
+      },
+      "template": "interactive-short-6",
+      "nOpenSessions": 1
+    },
+    {
+      "session": {
+        "task": "Messages",
+        "sessionLength": 3,
+        "sessionId": 1
+      },
+      "template": "interactive-discover-2",
+      "nOpenSessions": 2
+    }
+  ]
+}
+```
+
+Here, the `"user"` field provides sequence-level metadata, while `"sequenceElements"` contains metadata for individual queries within that sequence.
+
+If the `--outputRaw` flag is enabled, the runner appends this metadata to the raw data output. Based on the previous example, the resulting output is structured as follows:
+
+```json
+[
+  {
+    "name": "<querySequenceName>",
+    "id": "0",
+    "hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "results": 0,
+    "time": 3400,
+    "timestamps": [],
+    "httpRequests": 2579,
+    "user": {
+      "user": "http://solidbench-server:3000/pods/00000000000000000933/profile/card#me",
+      "transitionProbability": 0.09954255358650524
+    },
+    "sequenceElement": {
+      "session": {
+        "task": "Messages",
+        "sessionLength": 5,
+        "sessionId": 0
+      },
+      "template": "interactive-short-6",
+      "nOpenSessions": 1
+    }
+  },
+  {
+    "name": "<querySequenceName>",
+    "id": "1",
+    "hash": "8493b4f999ae7bae8fd62f6d7734e0ac",
+    "results": 0,
+    "time": 43888,
+    "timestamps": [
+      300, 3500, 40000
+    ],
+    "httpRequests": 2579,
+    "user": {
+      "user": "http://solidbench-server:3000/pods/00000000000000000933/profile/card#me",
+      "transitionProbability": 0.09954255358650524
+    },
+    "sequenceElement": {
+      "session": {
+        "task": "Messages",
+        "sessionLength": 3,
+        "sessionId": 1
+      },
+      "template": "interactive-discover-2",
+      "nOpenSessions": 2
+    }
+  }
+]
+```
 
 ## Docker
 
