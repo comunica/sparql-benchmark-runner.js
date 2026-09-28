@@ -102,6 +102,30 @@ describe('ResultSerializerCsv', () => {
     expect(writeStreamEnd).toHaveBeenCalledTimes(1);
   });
 
+  it('should escape all newlines, separators and quotes in errors and strings', async() => {
+    results = [
+      {
+        name: 'a;b',
+        id: '0',
+        time: 0,
+        error: new Error('HTTP 502:\n<html>\r\n<div style="font-weight: bold; font-size:18px">\nDown</div>\n</html>'),
+        results: 0,
+        hash: 'error',
+        timestamps: [],
+      },
+    ];
+    const expectedLines = [
+      'name;id;error;errorDescription;hash;results;time;timestamps;timestampsAll\n',
+      // eslint-disable-next-line max-len
+      '"a;b";0;true;"HTTP 502:\\n<html>\\n<div style=""font-weight: bold; font-size:18px"">\\nDown</div>\\n</html>";error;0;0;;\n',
+    ];
+    await resultSerializer.serialize('results.csv', results);
+    expect(writeStreamWrite).toHaveBeenCalledTimes(expectedLines.length);
+    for (const [ index, line ] of expectedLines.entries()) {
+      expect(writeStreamWrite).toHaveBeenNthCalledWith(index + 1, line);
+    }
+  });
+
   it('should properly serialize results without ignored keys', async() => {
     resultSerializer = new ResultSerializerCsv({
       arraySeparator: ' ',

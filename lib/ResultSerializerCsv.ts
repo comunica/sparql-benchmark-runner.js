@@ -47,8 +47,10 @@ export class ResultSerializerCsv extends ResultSerializer {
             case 'bigint':
             case 'boolean':
             case 'number':
-            case 'string':
               values.push(value.toString());
+              break;
+            case 'string':
+              values.push(this.escapeValue(value));
               break;
             case 'object':
               if (Array.isArray(value)) {
@@ -59,7 +61,7 @@ export class ResultSerializerCsv extends ResultSerializer {
                   values.push(value.join(this.arraySeparator));
                 }
               } else if (value instanceof Error) {
-                values.push(value.message.replace('\n', '\\n'));
+                values.push(this.escapeValue(value.message));
               } else {
                 values.push(<string>value.constructor.name);
               }
@@ -82,6 +84,20 @@ export class ResultSerializerCsv extends ResultSerializer {
       csvFileStream.write(`${values.join(this.columnSeparator)}\n`);
     }
     csvFileStream.end();
+  }
+
+  /**
+   * Escape a string value, so that it remains a single field on a single line.
+   * Newlines are written as \n,
+   * and values containing the column separator or quotes are quoted.
+   * @param value A string value.
+   */
+  public escapeValue(value: string): string {
+    const escaped = value.replaceAll(/\r?\n|\r/gu, '\\n');
+    if (escaped.includes(this.columnSeparator) || escaped.includes('"')) {
+      return `"${escaped.replaceAll('"', '""')}"`;
+    }
+    return escaped;
   }
 }
 
