@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.1.1"></a>
+## [v5.1.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.1.0...v5.1.1) - 2026-09-28
+
+### Fixed
+* [Escape all newlines, separators and quotes in CSV values (#16)](https://github.com/comunica/sparql-benchmark-runner.js/commit/848e2f2908f13f173da5cf01689f8bbd8d6f5a05)
+
 <a name="v5.1.0"></a>
 ## [v5.1.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.0.1...v5.1.0) - 2026-05-12
 
