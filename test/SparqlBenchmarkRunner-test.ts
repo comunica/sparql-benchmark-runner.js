@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream';
 import type * as RDF from '@rdfjs/types';
-import type * as fetchSparqlEndpoint from 'fetch-sparql-endpoint';
+import * as fetchSparqlEndpoint from 'fetch-sparql-endpoint';
 import { DataFactory } from 'rdf-data-factory';
 import type { IAggregateResult, IResult } from '../lib/Result';
 import { SparqlBenchmarkRunner } from '../lib/SparqlBenchmarkRunner';
@@ -792,6 +792,59 @@ describe('SparqlBenchmarkRunner', () => {
       await expect(results).resolves.toEqual(expectedResults);
     });
 
+    it('aborts the requests of hanging queries when a timeout is configured', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets,
+        replication,
+        warmup,
+        timeout: 1_000,
+        logger,
+      });
+
+      const signals: AbortSignal[] = [];
+      jest.spyOn(fetcher, 'fetchBindings').mockImplementation(async() => {
+        signals.push((<any> runner).queryAbortController.signal);
+        const readable = new Readable();
+        readable._read = () => {
+          // Do nothing
+        };
+        return readable;
+      });
+
+      const results = runner.executeAllQueries(replication, false);
+      await jest.runAllTimersAsync();
+      await results;
+
+      expect(signals).toHaveLength(Object.values(querySets).flat().length * replication);
+      expect(signals.every(signal => signal.aborted)).toBe(true);
+      expect((<any> runner).queryAbortController).toBeUndefined();
+    });
+
+    it('does not abort the requests of completed queries when a timeout is configured', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets,
+        replication,
+        warmup,
+        timeout: 1_000,
+        logger,
+      });
+
+      const signals: AbortSignal[] = [];
+      jest.spyOn(fetcher, 'fetchBindings').mockImplementation(async() => {
+        signals.push((<any> runner).queryAbortController.signal);
+        return streamifyArray([ ...mockedResult ]);
+      });
+
+      const results = runner.executeAllQueries(replication, false);
+      await jest.runAllTimersAsync();
+      await results;
+
+      expect(signals.length).toBeGreaterThan(0);
+      expect(signals.some(signal => signal.aborted)).toBe(false);
+    });
+
     it('handles failing queries', async() => {
       const expectedError = new Error('SparqlBenchmarkRunner test reject');
 
@@ -1492,6 +1545,40 @@ describe('SparqlBenchmarkRunner', () => {
       });
       runner.log('some message');
       expect(logger).not.toHaveBeenCalled();
+    });
+  });
+  describe('fetchAbortable', () => {
+    let fetchOption: (input: Request | string, init?: RequestInit) => Promise<Response>;
+
+    beforeEach(() => {
+      fetchOption = jest.mocked(fetchSparqlEndpoint.SparqlEndpointFetcher).mock.calls.at(-1)![0]!.fetch!;
+    });
+
+    it('passes requests through when no query is running', async() => {
+      const init = { method: 'POST' };
+      await fetchOption('http://example.org/', init);
+
+      expect(fetch).toHaveBeenCalledWith('http://example.org/', init);
+    });
+
+    it('uses the signal of the running query', async() => {
+      const controller = new AbortController();
+      (<any> runner).queryAbortController = controller;
+      await fetchOption('http://example.org/');
+
+      expect(fetch).toHaveBeenCalledWith('http://example.org/', { signal: controller.signal });
+    });
+
+    it('aborts the running query when the original signal aborts', async() => {
+      const controller = new AbortController();
+      (<any> runner).queryAbortController = controller;
+      const originalController = new AbortController();
+      await fetchOption('http://example.org/', { method: 'POST', signal: originalController.signal });
+
+      expect(fetch).toHaveBeenCalledWith('http://example.org/', { method: 'POST', signal: controller.signal });
+      expect(controller.signal.aborted).toBe(false);
+      originalController.abort();
+      expect(controller.signal.aborted).toBe(true);
     });
   });
 });
