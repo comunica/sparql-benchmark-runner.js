@@ -91,6 +91,11 @@ async function main(): Promise<void> {
         coerce: (arg: number) => arg * 1_000,
         number: true,
       },
+      recoveryQuery: {
+        type: 'string',
+        description: 'SELECT or ASK query that must succeed after a failed query, before the next query is executed',
+        string: true,
+      },
     })
     .help()
     .parse();
@@ -108,6 +113,7 @@ async function main(): Promise<void> {
     availabilityCheckTimeout: 1_000,
     logger,
     invalidateCacheBetweenSetExecutions: args.invalidateCacheAfterQuerySet,
+    recoveryQuery: args.recoveryQuery,
   });
 
   const results: IRunResult = await runner.runWithRawResults();

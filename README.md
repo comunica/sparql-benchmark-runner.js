@@ -74,6 +74,8 @@ Options:
   --invalidateCacheAfterQuerySet  Send a cache invalidation request after each query set
                  execution                              [boolean] [default: false]
   --timeout      Timeout value in seconds to use for individual queries [number]
+  --recoveryQuery  SELECT or ASK query that must succeed after a failed query,
+                 before the next query is executed                       [string]
   ----help
 ```
 An example input is the following.
@@ -119,6 +121,7 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     warmup: 1,
     timeout: 60_000,
     availabilityCheckTimeout: 1_000,
+    recoveryQuery: 'ASK { ?s ?p ?o }',
     logger: (message) => console.log(message),
     resultAggregator,
   });
@@ -128,6 +131,13 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
   await resultSerializer.serialize(pathToOutputCsv, results.aggregateResults);
 }
 ```
+
+### Recovering after failed queries
+
+Some endpoints need time to recover after a failed query, such as a timeout.
+For example, they may still be evaluating the query, or they may restart and reload their data.
+To avoid counting this recovery time in the next query, a `recoveryQuery` (or `--recoveryQuery` from the CLI) can be set.
+After a failed query, this query is sent to the endpoint until it succeeds, before the next query is executed.
 
 ### Sequence Metadata
 
