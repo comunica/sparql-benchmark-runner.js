@@ -1,6 +1,9 @@
 # Build stage
 FROM node:lts AS build
 
+## Enable yarn, which is no longer bundled with Node.js
+RUN npm install -g corepack && corepack enable
+
 ## Set current working directory
 WORKDIR /sparql-benchmark-runner
 
@@ -12,11 +15,14 @@ COPY tsconfig.json .
 COPY yarn.lock .
 
 ## Install and build the lib
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --ignore-scripts && yarn run build
 
 
 # Runtime stage
 FROM node:lts-alpine
+
+## Enable yarn, which is no longer bundled with Node.js
+RUN npm install -g corepack && corepack enable
 
 ## Set current working directory
 WORKDIR /sparql-benchmark-runner
@@ -28,7 +34,7 @@ COPY --from=build /sparql-benchmark-runner/bin ./bin
 COPY --from=build /sparql-benchmark-runner/lib ./lib
 
 # Install the node module
-RUN yarn install --frozen-lockfile --production
+RUN yarn install --frozen-lockfile --production --ignore-scripts
 
 # Run base binary
 ENTRYPOINT ["node", "./bin/sparql-benchmark-runner"]
