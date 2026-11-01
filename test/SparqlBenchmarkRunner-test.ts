@@ -2,6 +2,7 @@ import { Readable } from 'node:stream';
 import type * as RDF from '@rdfjs/types';
 import * as fetchSparqlEndpoint from 'fetch-sparql-endpoint';
 import { DataFactory } from 'rdf-data-factory';
+import { nodeHttpFetch } from '../lib/NodeHttpFetch';
 import type { IAggregateResult, IResult } from '../lib/Result';
 import { SparqlBenchmarkRunner } from '../lib/SparqlBenchmarkRunner';
 
@@ -15,6 +16,10 @@ const fetcher = <fetchSparqlEndpoint.SparqlEndpointFetcher> <unknown> {
 
 jest.mock<typeof fetchSparqlEndpoint>('fetch-sparql-endpoint', () => (<typeof fetchSparqlEndpoint> <unknown> {
   SparqlEndpointFetcher: jest.fn().mockImplementation(() => fetcher),
+}));
+
+jest.mock<typeof import('../lib/NodeHttpFetch')>('../lib/NodeHttpFetch', () => ({
+  nodeHttpFetch: jest.fn().mockResolvedValue({ ok: true }),
 }));
 
 describe('SparqlBenchmarkRunner', () => {
@@ -1558,7 +1563,7 @@ describe('SparqlBenchmarkRunner', () => {
       const init = { method: 'POST' };
       await fetchOption('http://example.org/', init);
 
-      expect(fetch).toHaveBeenCalledWith('http://example.org/', init);
+      expect(nodeHttpFetch).toHaveBeenCalledWith('http://example.org/', init);
     });
 
     it('uses the signal of the running query', async() => {
@@ -1566,7 +1571,7 @@ describe('SparqlBenchmarkRunner', () => {
       (<any> runner).queryAbortController = controller;
       await fetchOption('http://example.org/');
 
-      expect(fetch).toHaveBeenCalledWith('http://example.org/', { signal: controller.signal });
+      expect(nodeHttpFetch).toHaveBeenCalledWith('http://example.org/', { signal: controller.signal });
     });
 
     it('aborts the running query when the original signal aborts', async() => {
@@ -1575,7 +1580,7 @@ describe('SparqlBenchmarkRunner', () => {
       const originalController = new AbortController();
       await fetchOption('http://example.org/', { method: 'POST', signal: originalController.signal });
 
-      expect(fetch).toHaveBeenCalledWith('http://example.org/', { method: 'POST', signal: controller.signal });
+      expect(nodeHttpFetch).toHaveBeenCalledWith('http://example.org/', { method: 'POST', signal: controller.signal });
       expect(controller.signal.aborted).toBe(false);
       originalController.abort();
       expect(controller.signal.aborted).toBe(true);

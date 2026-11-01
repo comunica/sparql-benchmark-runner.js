@@ -2,6 +2,7 @@ import { createHash, type Hash } from 'node:crypto';
 import type * as RDF from '@rdfjs/types';
 import { SparqlEndpointFetcher } from 'fetch-sparql-endpoint';
 import { termToString } from 'rdf-string';
+import { nodeHttpFetch } from './NodeHttpFetch';
 import type { IQuerySetMetadata } from './QueryLoader';
 import type { IAggregateResult, IResult, IResultMetadata, IRunResult } from './Result';
 import type { IResultAggregator } from './ResultAggregator';
@@ -59,7 +60,7 @@ export class SparqlBenchmarkRunner {
       init?.signal?.addEventListener('abort', () => controller.abort());
       init = { ...init, signal: controller.signal };
     }
-    return fetch(input, init);
+    return nodeHttpFetch(input, init);
   }
 
   /**
