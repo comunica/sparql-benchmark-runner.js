@@ -25,6 +25,7 @@ export class SparqlBenchmarkRunner {
   protected readonly availabilityCheckTimeout: number;
   protected readonly invalidateCacheBetweenSetExecutions: boolean;
   public readonly endpointFetcher: SparqlEndpointFetcher;
+  protected queryAbortController: AbortController | undefined;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.logger = options.logger;
@@ -43,7 +44,22 @@ export class SparqlBenchmarkRunner {
     this.endpointFetcher = new SparqlEndpointFetcher({
       additionalUrlParams: options.additionalUrlParams,
       timeout: options.timeout,
+      fetch: (input, init) => this.fetchAbortable(input, init),
     });
+  }
+
+  /**
+   * Fetch that aborts requests on query timeout.
+   * @param input The request input.
+   * @param init The request options.
+   */
+  protected fetchAbortable(input: Request | string, init?: RequestInit): Promise<Response> {
+    const controller = this.queryAbortController;
+    if (controller) {
+      init?.signal?.addEventListener('abort', () => controller.abort());
+      init = { ...init, signal: controller.signal };
+    }
+    return fetch(input, init);
   }
 
   /**
@@ -182,10 +198,13 @@ export class SparqlBenchmarkRunner {
       timestamps: [],
     };
 
+    this.queryAbortController = new AbortController();
     const timeoutPromise = new Promise<void>((resolve, reject) => {
       if (this.timeout) {
         // When timeout is not set, this promise will never reject or resolve
         timeoutHandle = setTimeout(() => {
+          // Close the connection, so that the endpoint can stop evaluating the query
+          this.queryAbortController?.abort();
           reject(new Error(`Query timed out after ${Math.round(this.timeout! / 1_000)} seconds client-side`));
         }, this.timeout);
       }
@@ -216,6 +235,7 @@ export class SparqlBenchmarkRunner {
     }
 
     clearTimeout(timeoutHandle);
+    this.queryAbortController = undefined;
     result.time = Math.round(this.countTime(hrstart));
 
     const bindingsHash: Hash = createHash(this.bindingsHashAlgorithm, { encoding: 'utf-8' });
