@@ -49,9 +49,7 @@ export class SparqlBenchmarkRunner {
   }
 
   /**
-   * Fetch that is also aborted when the current query times out.
-   * The fetcher's own timeout only applies until the response headers are received,
-   * after which the endpoint would otherwise keep evaluating the query.
+   * Fetch that aborts requests on query timeout.
    * @param input The request input.
    * @param init The request options.
    */
