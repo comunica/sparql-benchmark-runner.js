@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.2.0"></a>
+## [v5.2.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.1.1...v5.2.0) - 2026-11-01
+
+### Changed
+* [Abort query requests on time out (#17)](https://github.com/comunica/sparql-benchmark-runner.js/commit/c54a03f07a6b5a2004a6a646e47b1b12d182039b)
+
+### Fixed
+* [Fix Docker build on Node.js versions without bundled yarn (#18)](https://github.com/comunica/sparql-benchmark-runner.js/commit/0c3ad21c9c8d36074b7a31b7eb159b3fafb4ee33)
+
 <a name="v5.1.1"></a>
 ## [v5.1.1](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.1.0...v5.1.1) - 2026-09-28
 
