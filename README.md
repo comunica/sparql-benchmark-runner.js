@@ -132,13 +132,6 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
 }
 ```
 
-### Recovering after failed queries
-
-Some endpoints need time to recover after a failed query, such as a timeout.
-For example, they may still be evaluating the query, or they may restart and reload their data.
-To avoid counting this recovery time in the next query, a `recoveryQuery` (or `--recoveryQuery` from the CLI) can be set.
-After a failed query, this query is sent to the endpoint until it succeeds, before the next query is executed.
-
 ### Sequence Metadata
 
 To enable sequence metadata from the CLI, add `--metadata`. Raw JSON output is
