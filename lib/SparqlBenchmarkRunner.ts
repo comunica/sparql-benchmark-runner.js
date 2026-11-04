@@ -24,8 +24,10 @@ export class SparqlBenchmarkRunner {
   protected readonly resultAggregator: IResultAggregator;
   protected readonly availabilityCheckTimeout: number;
   protected readonly invalidateCacheBetweenSetExecutions: boolean;
+  protected readonly recoveryQuery?: string;
   public readonly endpointFetcher: SparqlEndpointFetcher;
   protected queryAbortController: AbortController | undefined;
+  protected recoveryNeeded = false;
 
   public constructor(options: ISparqlBenchmarkRunnerArgs) {
     this.logger = options.logger;
@@ -41,6 +43,7 @@ export class SparqlBenchmarkRunner {
     this.bindingsHashAlgorithm = 'md5';
     this.availabilityCheckTimeout = options.availabilityCheckTimeout ?? 10_000;
     this.invalidateCacheBetweenSetExecutions = options.invalidateCacheBetweenSetExecutions ?? false;
+    this.recoveryQuery = options.recoveryQuery;
     this.endpointFetcher = new SparqlEndpointFetcher({
       additionalUrlParams: options.additionalUrlParams,
       timeout: options.timeout,
@@ -132,6 +135,9 @@ export class SparqlBenchmarkRunner {
           this.log(`Execute: ${(++finishedExecutions).toString().padStart(totalExecutions.length, ' ')} / ${totalExecutions} <${name}#${id}>`);
 
           await this.waitForEndpoint();
+          if (this.recoveryNeeded) {
+            await this.waitForRecovery();
+          }
 
           if (this.requestDelay) {
             await this.sleep(this.requestDelay);
@@ -141,6 +147,7 @@ export class SparqlBenchmarkRunner {
           }
 
           let result = await this.executeQuery(name, id.toString(), queryString);
+          this.recoveryNeeded = Boolean(this.recoveryQuery && result.error);
 
           const querySetMetadata = this.querySetsMetadata?.[name];
           const queryMetadata = querySetMetadata?.[id];
@@ -309,6 +316,27 @@ export class SparqlBenchmarkRunner {
   }
 
   /**
+   * Wait until the endpoint answers the recovery query.
+   * This is done after a failed query, as endpoints may still be busy with it, or may restart and reload their data,
+   * which should not be counted in the execution time of the next query.
+   */
+  public async waitForRecovery(): Promise<void> {
+    const hrstart = process.hrtime();
+    for (;;) {
+      try {
+        const [ , stream ] = await this.endpointFetcher
+          .fetchRawStream(this.endpoint, this.recoveryQuery!, 'application/sparql-results+json');
+        await new Promise((resolve, reject) => stream.on('error', reject).on('end', resolve).resume());
+        break;
+      } catch (error: unknown) {
+        this.log(`Recovery query failed, retrying: ${(<Error> error).message}`);
+        await this.sleep(1_000);
+      }
+    }
+    this.log(`Endpoint recovered after ${Math.round(this.countTime(hrstart) / 1_000)} seconds`);
+  }
+
+  /**
    * Sleep for a given amount of time.
    * @param durationMs A duration in milliseconds.
    */
@@ -384,6 +412,13 @@ export interface ISparqlBenchmarkRunnerArgs {
    * The delay between subsequent requests sent to the server.
    */
   requestDelay?: number;
+  /**
+   * A SELECT or ASK query that is sent after a failed query (such as a timeout),
+   * and that must succeed before the next query is executed.
+   * This avoids counting the time an endpoint needs to recover from the failure in the next query,
+   * for example when it restarts and reloads its data.
+   */
+  recoveryQuery?: string;
 }
 
 export interface IRunOptions {

@@ -11,6 +11,7 @@ const DF = new DataFactory();
 
 const fetcher = <fetchSparqlEndpoint.SparqlEndpointFetcher> <unknown> {
   fetchBindings: () => Promise.resolve(streamifyArray([])),
+  fetchRawStream: () => Promise.resolve([ 'application/sparql-results+json', streamifyArray([]) ]),
 };
 
 jest.mock<typeof fetchSparqlEndpoint>('fetch-sparql-endpoint', () => (<typeof fetchSparqlEndpoint> <unknown> {
@@ -943,6 +944,51 @@ describe('SparqlBenchmarkRunner', () => {
       await expect(results).resolves.toEqual(expectedResults);
     });
 
+    it('waits for the recovery query after a failed query', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets: { a: [ 'Q1', 'Q2', 'Q3' ]},
+        replication: 1,
+        warmup: 0,
+        logger,
+        recoveryQuery: 'ASK { ?s ?p ?o }',
+      });
+      jest.spyOn(runner, 'endpointAvailable').mockResolvedValue(true);
+      const calls: string[] = [];
+      jest.spyOn(fetcher, 'fetchBindings').mockImplementation(async(_endpoint, query) => {
+        calls.push(query);
+        if (query === 'Q1') {
+          throw new Error('Q1 failed');
+        }
+        return streamifyArray([ ...mockedResult ]);
+      });
+      jest.spyOn(fetcher, 'fetchRawStream').mockImplementation(async(_endpoint, query) => {
+        calls.push(query);
+        return [ 'application/sparql-results+json', streamifyArray([ '{}' ]) ];
+      });
+
+      const results = runner.executeAllQueries(1, false);
+      await jest.runAllTimersAsync();
+      await results;
+
+      // Only the failed query is followed by the recovery query
+      expect(calls).toEqual([ 'Q1', 'ASK { ?s ?p ?o }', 'Q2', 'Q3' ]);
+      expect(fetcher.fetchRawStream)
+        .toHaveBeenCalledWith(endpoint, 'ASK { ?s ?p ?o }', 'application/sparql-results+json');
+    });
+
+    it('does not send a recovery query after a failed query when none is configured', async() => {
+      jest.spyOn(runner, 'endpointAvailable').mockResolvedValue(true);
+      jest.spyOn(fetcher, 'fetchBindings').mockRejectedValue(new Error('failed'));
+      jest.spyOn(fetcher, 'fetchRawStream');
+
+      const results = runner.executeAllQueries(1, false);
+      await jest.runAllTimersAsync();
+      await results;
+
+      expect(fetcher.fetchRawStream).not.toHaveBeenCalled();
+    });
+
     it('handles failing bindings streams', async() => {
       const expectedError = new Error('SparqlBenchmarkRunner test stream error');
 
@@ -1497,6 +1543,45 @@ describe('SparqlBenchmarkRunner', () => {
 
       expect(logger).toHaveBeenNthCalledWith(1, `Endpoint not available yet, waited for 1 seconds...`);
       expect(logger).toHaveBeenNthCalledWith(2, `Endpoint available after 1 seconds`);
+    });
+  });
+
+  describe('waitForRecovery', () => {
+    beforeEach(() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets,
+        replication,
+        warmup,
+        logger,
+        recoveryQuery: 'ASK { ?s ?p ?o }',
+      });
+      jest.spyOn(runner, 'sleep').mockResolvedValue();
+    });
+
+    it('returns once the recovery query succeeds', async() => {
+      process.hrtime = <any> (() => [ 2, 0 ]);
+      await runner.waitForRecovery();
+
+      expect(fetcher.fetchRawStream).toHaveBeenCalledTimes(1);
+      expect(runner.sleep).not.toHaveBeenCalled();
+      expect(logger).toHaveBeenCalledWith(`Endpoint recovered after 2 seconds`);
+    });
+
+    it('retries until the recovery query succeeds', async() => {
+      jest.spyOn(fetcher, 'fetchRawStream')
+        .mockRejectedValueOnce(new Error('connection refused'))
+        .mockResolvedValueOnce([ '', new Readable({
+          read() {
+            this.destroy(new Error('stream failed'));
+          },
+        }) ]);
+      await runner.waitForRecovery();
+
+      expect(fetcher.fetchRawStream).toHaveBeenCalledTimes(3);
+      expect(runner.sleep).toHaveBeenCalledTimes(2);
+      expect(logger).toHaveBeenCalledWith(`Recovery query failed, retrying: connection refused`);
+      expect(logger).toHaveBeenCalledWith(`Recovery query failed, retrying: stream failed`);
     });
   });
 

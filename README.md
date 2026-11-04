@@ -74,6 +74,8 @@ Options:
   --invalidateCacheAfterQuerySet  Send a cache invalidation request after each query set
                  execution                              [boolean] [default: false]
   --timeout      Timeout value in seconds to use for individual queries [number]
+  --recoveryQuery  SELECT or ASK query that must succeed after a failed query,
+                 before the next query is executed                       [string]
   ----help
 ```
 An example input is the following.
@@ -119,6 +121,7 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
     warmup: 1,
     timeout: 60_000,
     availabilityCheckTimeout: 1_000,
+    recoveryQuery: 'ASK { ?s ?p ?o }',
     logger: (message) => console.log(message),
     resultAggregator,
   });
