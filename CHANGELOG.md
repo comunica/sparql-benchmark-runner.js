@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.3.0"></a>
+## [v5.3.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.2.0...v5.3.0) - 2026-11-07
+
+### Added
+* [Add optional recovery query param after failed queries (#19)](https://github.com/comunica/sparql-benchmark-runner.js/commit/cb57114cde0aeeacab6f3ef093f06f26fae400de)
+
 <a name="v5.2.0"></a>
 ## [v5.2.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.1.1...v5.2.0) - 2026-11-01
 
