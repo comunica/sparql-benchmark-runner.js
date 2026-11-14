@@ -76,6 +76,9 @@ Options:
   --timeout      Timeout value in seconds to use for individual queries [number]
   --recoveryQuery  SELECT or ASK query that must succeed after a failed query,
                  before the next query is executed                       [string]
+  --resultConsistency  How the results of the executions of a query are
+                 compared: their hashes, or only their counts
+                           [string] [choices: "hash", "count"] [default: "hash"]
   ----help
 ```
 An example input is the following.
@@ -98,6 +101,11 @@ the runner uses `ResultAggregatorComunica` that handles basic aggregation,
 as well as the `httpRequests` metadata field from a Comunica SPARQL endpoint, if such metadata is provided.
 Metadata-based sequence aggregation is optional and can be enabled by passing
 query metadata to the runner together with `ResultAggregatorComunicaQuerySequence`.
+
+A query is marked as failed if its executions produce different results.
+By default, this compares the hashes of the results.
+For queries that can produce different valid results, such as a `LIMIT` without `ORDER BY`,
+result aggregators can be created with `{ resultConsistency: 'count' }`, so that only the number of results is compared.
 
 ```javascript
 import {

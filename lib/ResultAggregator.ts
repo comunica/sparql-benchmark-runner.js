@@ -1,6 +1,12 @@
 import type { IResult, IAggregateResult } from './Result';
 
 export class ResultAggregator implements IResultAggregator {
+  protected readonly resultConsistency: 'hash' | 'count';
+
+  public constructor(options: IResultAggregatorOptions = {}) {
+    this.resultConsistency = options.resultConsistency ?? 'hash';
+  }
+
   /**
    * Groups query execution results by name and id.
    * @param results Ungrouped results.
@@ -49,6 +55,7 @@ export class ResultAggregator implements IResultAggregator {
       };
 
       let inconsistentResults = false;
+      let firstResults = 0;
       let successfulExecutions = 0;
       const timestampsAll: number[][] = [];
       // Track max number of timestamps for averaging of timestamps later
@@ -75,7 +82,10 @@ export class ResultAggregator implements IResultAggregator {
           // If we haven't registered hash, we do so for full query result
           if (aggregate.hash.length === 0) {
             aggregate.hash = result.hash;
-          } else if (aggregate.hash !== result.hash) {
+            firstResults = result.results;
+          } else if (this.resultConsistency === 'hash' ?
+            aggregate.hash !== result.hash :
+            firstResults !== result.results) {
             inconsistentResults = true;
             aggregate.failures++;
           }
@@ -86,7 +96,7 @@ export class ResultAggregator implements IResultAggregator {
         }
       }
       if (inconsistentResults && !aggregate.error) {
-        aggregate.error = new Error('Result hash inconsistency');
+        aggregate.error = new Error(`Result ${this.resultConsistency} inconsistency`);
       }
 
       if (timestampsAll.length > 0) {
@@ -167,6 +177,16 @@ export class ResultAggregator implements IResultAggregator {
     const aggregateResults = this.aggregateGroupedResults(groupedResults);
     return aggregateResults;
   }
+}
+
+export interface IResultAggregatorOptions {
+  /**
+   * How the results of the executions of a query are compared, which marks the query as failed if they differ:
+   * 'hash' compares the hashes of the results, and 'count' only compares the number of results.
+   * 'count' is meant for queries that can produce different valid results, such as a LIMIT without ORDER BY.
+   * Defaults to 'hash'.
+   */
+  resultConsistency?: 'hash' | 'count';
 }
 
 export interface IResultAggregator {

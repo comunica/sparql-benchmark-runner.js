@@ -228,5 +228,41 @@ describe('ResultAggregator', () => {
       }];
       expect(aggregator.aggregateResults(resultInput)).toEqual(expected);
     });
+
+    describe('when only comparing result counts', () => {
+      const countAggregator = new ResultAggregator({ resultConsistency: 'count' });
+
+      it('accepts results with inconsistent hashes but equal counts', () => {
+        const resultInput = [ results[0], results[4] ];
+        const expected: IAggregateResult[] = [{
+          name: 'a',
+          id: '0',
+          time: 30,
+          timeMax: 30,
+          timeMin: 30,
+          timeStd: 0,
+          failures: 0,
+          replication: 2,
+          results: 3,
+          resultsMax: 3,
+          resultsMin: 3,
+          hash: 'a',
+          timestamps: [ 10, 20, 30 ],
+          timestampsAll: [[ 10, 20, 30 ], [ 10, 20, 30 ]],
+          timestampsMax: [ 10, 20, 30 ],
+          timestampsMin: [ 10, 20, 30 ],
+          timestampsStd: [ 0, 0, 0 ],
+          times: resultInput.map(({ time, error }) => error ? Number.NaN : time),
+        }];
+        expect(countAggregator.aggregateResults(resultInput)).toEqual(expected);
+      });
+
+      it('fails on different result counts', () => {
+        const resultInput = [ ...results.slice(0, 2), results[3] ];
+        const [ aggregate ] = countAggregator.aggregateResults(resultInput);
+        expect(aggregate.failures).toBe(1);
+        expect(aggregate.error).toEqual(new Error('Result count inconsistency'));
+      });
+    });
   });
 });

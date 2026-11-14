@@ -4,6 +4,7 @@ import { hideBin } from 'yargs/helpers';
 import type { IQueryLoader, IQuerySetMetadata } from '../lib/QueryLoader';
 import { QueryLoaderFile } from '../lib/QueryLoaderFile';
 import type { IAggregateResult, IResult, IRunResult } from '../lib/Result';
+import { ResultAggregatorComunica } from '../lib/ResultAggregatorComunica';
 import { ResultAggregatorComunicaQuerySequence } from '../lib/ResultAggregatorComunicaQuerySequence';
 import type { IResultSerializer } from '../lib/ResultSerializer';
 import { ResultSerializerCsv } from '../lib/ResultSerializerCsv';
@@ -96,6 +97,12 @@ async function main(): Promise<void> {
         description: 'SELECT or ASK query that must succeed after a failed query, before the next query is executed',
         string: true,
       },
+      resultConsistency: {
+        type: 'string',
+        choices: <const> [ 'hash', 'count' ],
+        default: <const> 'hash',
+        description: 'How the results of the executions of a query are compared: their hashes, or only their counts',
+      },
     })
     .help()
     .parse();
@@ -103,7 +110,9 @@ async function main(): Promise<void> {
   const querySetsMetadata = args.metadata ? await loadQueryMetadata(args.queries) : undefined;
 
   const runner = new SparqlBenchmarkRunner({
-    resultAggregator: args.metadata ? new ResultAggregatorComunicaQuerySequence() : undefined,
+    resultAggregator: args.metadata ?
+      new ResultAggregatorComunicaQuerySequence({ resultConsistency: args.resultConsistency }) :
+      new ResultAggregatorComunica({ resultConsistency: args.resultConsistency }),
     endpoint: args.endpoint,
     querySets,
     querySetsMetadata,
