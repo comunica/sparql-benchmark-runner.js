@@ -1,23 +1,18 @@
-import type * as fs from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { IResult } from '../lib/Result';
 import { ResultSerializerCsv } from '../lib/ResultSerializerCsv';
-
-const writeStreamEnd = jest.fn();
-const writeStreamWrite = jest.fn();
-
-jest.mock<typeof fs>('node:fs', () => <typeof fs> <unknown> ({
-  createWriteStream: (): fs.WriteStream => <fs.WriteStream> <unknown> ({
-    write: writeStreamWrite,
-    end: writeStreamEnd,
-  }),
-}));
 
 describe('ResultSerializerCsv', () => {
   let resultSerializer: ResultSerializerCsv;
   let results: IResult[];
+  let dir: string;
+  let path: string;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    dir = mkdtempSync(join(tmpdir(), 'sparql-benchmark-runner-'));
+    path = join(dir, 'results.csv');
     resultSerializer = new ResultSerializerCsv();
     results = [
       {
@@ -66,6 +61,10 @@ describe('ResultSerializerCsv', () => {
     ];
   });
 
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it('should properly sort keys', async() => {
     await expect(resultSerializer.keys(results)).resolves.toStrictEqual([
       'name',
@@ -95,11 +94,8 @@ describe('ResultSerializerCsv', () => {
       'a;2;;true;Example error;;error;ReadableStream;0;;;0;;;\n',
       'a;2;;true;Example error\\nWith newline;;error;ReadableStream;0;;;0;;;\n',
     ];
-    await resultSerializer.serialize('results.csv', results);
-    for (const [ index, line ] of expectedLines.entries()) {
-      expect(writeStreamWrite).toHaveBeenNthCalledWith(index + 1, line);
-    }
-    expect(writeStreamEnd).toHaveBeenCalledTimes(1);
+    await resultSerializer.serialize(path, results);
+    expect(readFileSync(path, 'utf-8')).toBe(expectedLines.join(''));
   });
 
   it('should escape all newlines, separators and quotes in errors and strings', async() => {
@@ -119,11 +115,8 @@ describe('ResultSerializerCsv', () => {
       // eslint-disable-next-line max-len
       '"a;b";0;true;"HTTP 502:\\n<html>\\n<div style=""font-weight: bold; font-size:18px"">\\nDown</div>\\n</html>";error;0;0;;\n',
     ];
-    await resultSerializer.serialize('results.csv', results);
-    expect(writeStreamWrite).toHaveBeenCalledTimes(expectedLines.length);
-    for (const [ index, line ] of expectedLines.entries()) {
-      expect(writeStreamWrite).toHaveBeenNthCalledWith(index + 1, line);
-    }
+    await resultSerializer.serialize(path, results);
+    expect(readFileSync(path, 'utf-8')).toBe(expectedLines.join(''));
   });
 
   it('should properly serialize results without ignored keys', async() => {
@@ -147,11 +140,14 @@ describe('ResultSerializerCsv', () => {
       'a;0;false;;0;;\n',
       'a;1;false;;1;1;"[[1]]"\n',
       'a;2;true;Example error;0;;\n',
+      'a;2;true;Example error\\nWith newline;0;;\n',
     ];
-    await resultSerializer.serialize('results.csv', results);
-    for (const [ index, line ] of expectedLines.entries()) {
-      expect(writeStreamWrite).toHaveBeenNthCalledWith(index + 1, line);
-    }
-    expect(writeStreamEnd).toHaveBeenCalledTimes(1);
+    await resultSerializer.serialize(path, results);
+    expect(readFileSync(path, 'utf-8')).toBe(expectedLines.join(''));
+  });
+
+  it('should reject when the file cannot be written', async() => {
+    await expect(resultSerializer.serialize(join(dir, 'missing', 'results.csv'), results))
+      .rejects.toThrow('ENOENT');
   });
 });
