@@ -17,7 +17,7 @@ export class ResultSerializerRaw extends ResultSerializer {
 
   /**
    * Write raw results to JSON file.
-   * Results are written one by one, as the JSON of all results can exceed the maximum string length.
+   * Results are written one by one.
    * @param path The destination file path.
    * @param results The benchmark results to serialize.
    */
@@ -26,8 +26,7 @@ export class ResultSerializerRaw extends ResultSerializer {
   }
 
   /**
-   * Serialize results to JSON in chunks,
-   * which together equal `JSON.stringify(results, null, 2)`, with errors as their messages.
+   * Serialize results to JSON in chunks.
    * @param results The benchmark results to serialize.
    */
   public* serializeChunks<T extends IResult>(results: T[]): Generator<string> {

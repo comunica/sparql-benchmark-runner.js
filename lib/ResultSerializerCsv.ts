@@ -37,12 +37,11 @@ export class ResultSerializerCsv extends ResultSerializer {
    */
   public async serialize<T extends IResult>(path: string, results: T[]): Promise<void> {
     const keys = await this.keys(results);
-    // Resolves once the file is written, so that it survives an exit right after.
     await pipeline(Readable.from(this.serializeLines(keys, results)), createWriteStream(path));
   }
 
   /**
-   * Serialize results to CSV lines, starting with the header.
+   * Serialize results to CSV lines.
    * @param keys The columns.
    * @param results The benchmark results to serialize.
    */
