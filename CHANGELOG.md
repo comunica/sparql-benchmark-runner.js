@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.4.0"></a>
+## [v5.4.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.3.0...v5.4.0) - 2026-11-14
+
+### Changed
+* [Write CSV results in a streaming manner (#21)](https://github.com/comunica/sparql-benchmark-runner.js/commit/8954caf87b339c7a73edf15bdb833fba89225a8e)
+
 <a name="v5.3.0"></a>
 ## [v5.3.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.2.0...v5.3.0) - 2026-11-07
 
