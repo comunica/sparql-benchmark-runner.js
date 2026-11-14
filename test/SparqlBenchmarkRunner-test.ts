@@ -1368,6 +1368,50 @@ describe('SparqlBenchmarkRunner', () => {
       await expect(result).resolves.toEqual(expectedResult);
     });
 
+    it('records only the timestamp of the first result', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets,
+        replication,
+        warmup,
+        logger,
+        recordTimestamps: 'first',
+      });
+
+      const expectedResult: IResult = {
+        name: 'a',
+        id: '0',
+        time: 2,
+        results: 3,
+        timestamps: [ 1 ],
+        hash: mockedResultHash,
+      };
+
+      await expect(runner.executeQuery('a', '0', 'Q')).resolves.toEqual(expectedResult);
+    });
+
+    it('records no timestamps', async() => {
+      runner = new SparqlBenchmarkRunner({
+        endpoint,
+        querySets,
+        replication,
+        warmup,
+        logger,
+        recordTimestamps: 'none',
+      });
+
+      const expectedResult: IResult = {
+        name: 'a',
+        id: '0',
+        time: 1,
+        results: 3,
+        timestamps: [],
+        hash: mockedResultHash,
+      };
+
+      await expect(runner.executeQuery('a', '0', 'Q')).resolves.toEqual(expectedResult);
+    });
+
     it('handles a valid query with metadata', async() => {
       jest.spyOn(fetcher, 'fetchBindings').mockImplementation(async() => {
         const stream = streamifyArray([ ...mockedResult ]);

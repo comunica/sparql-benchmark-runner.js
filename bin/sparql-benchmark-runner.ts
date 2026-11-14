@@ -96,6 +96,11 @@ async function main(): Promise<void> {
         description: 'SELECT or ASK query that must succeed after a failed query, before the next query is executed',
         string: true,
       },
+      timestamps: {
+        choices: <const>[ 'all', 'first', 'none' ],
+        default: <const>'all',
+        description: 'Record the time of every result, of the first result only, or of none',
+      },
     })
     .help()
     .parse();
@@ -114,6 +119,7 @@ async function main(): Promise<void> {
     logger,
     invalidateCacheBetweenSetExecutions: args.invalidateCacheAfterQuerySet,
     recoveryQuery: args.recoveryQuery,
+    recordTimestamps: args.timestamps,
   });
 
   const results: IRunResult = await runner.runWithRawResults();
