@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v5.5.0"></a>
+## [v5.5.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.4.0...v5.5.0) - 2026-11-15
+
+### Added
+* [Add option to record only the first result timestamp, or none (#23)](https://github.com/comunica/sparql-benchmark-runner.js/commit/930d3852ac8a70a52b11bdaeea074b19e687f3d6)
+
 <a name="v5.4.0"></a>
 ## [v5.4.0](https://github.com/comunica/sparql-benchmark-runner.js/compare/v5.3.0...v5.4.0) - 2026-11-14
 
