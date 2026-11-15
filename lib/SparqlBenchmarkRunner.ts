@@ -25,6 +25,7 @@ export class SparqlBenchmarkRunner {
   protected readonly availabilityCheckTimeout: number;
   protected readonly invalidateCacheBetweenSetExecutions: boolean;
   protected readonly recoveryQuery?: string;
+  protected readonly recordTimestamps: RecordedTimestamps;
   public readonly endpointFetcher: SparqlEndpointFetcher;
   protected queryAbortController: AbortController | undefined;
   protected recoveryNeeded = false;
@@ -44,6 +45,7 @@ export class SparqlBenchmarkRunner {
     this.availabilityCheckTimeout = options.availabilityCheckTimeout ?? 10_000;
     this.invalidateCacheBetweenSetExecutions = options.invalidateCacheBetweenSetExecutions ?? false;
     this.recoveryQuery = options.recoveryQuery;
+    this.recordTimestamps = options.recordTimestamps ?? 'all';
     this.endpointFetcher = new SparqlEndpointFetcher({
       additionalUrlParams: options.additionalUrlParams,
       timeout: options.timeout,
@@ -227,7 +229,9 @@ export class SparqlBenchmarkRunner {
             }
           })
           .on('data', (bindings: Record<string, RDF.Term>) => {
-            result.timestamps.push(Math.round(this.countTime(hrstart)));
+            if (this.recordTimestamps === 'all' || (this.recordTimestamps === 'first' && result.results === 0)) {
+              result.timestamps.push(Math.round(this.countTime(hrstart)));
+            }
             result.results++;
             bindingsStrings.push(this.bindingsToString(bindings));
           })
@@ -419,6 +423,12 @@ export interface ISparqlBenchmarkRunnerArgs {
    * for example when it restarts and reloads its data.
    */
   recoveryQuery?: string;
+  /**
+   * Which result timestamps to record for each query execution:
+   * of every result (`all`, the default), of the first result only (`first`), or none (`none`).
+   * One timestamp per result takes much memory and output for queries with millions of results.
+   */
+  recordTimestamps?: RecordedTimestamps;
 }
 
 export interface IRunOptions {
@@ -436,3 +446,8 @@ export interface IRunOptions {
    */
   onQuery?: (queryString: string) => Promise<void>;
 }
+
+/**
+ * Which result timestamps a query execution records.
+ */
+export type RecordedTimestamps = 'all' | 'first' | 'none';

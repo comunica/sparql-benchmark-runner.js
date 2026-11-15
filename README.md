@@ -76,6 +76,8 @@ Options:
   --timeout      Timeout value in seconds to use for individual queries [number]
   --recoveryQuery  SELECT or ASK query that must succeed after a failed query,
                  before the next query is executed                       [string]
+  --timestamps   Record the time of every result, of the first result only, or
+                 of none     [choices: "all", "first", "none"] [default: "all"]
   ----help
 ```
 An example input is the following.
@@ -131,6 +133,13 @@ async function executeQueries(pathToQueries, pathToOutputCsv) {
   await resultSerializer.serialize(pathToOutputCsv, results.aggregateResults);
 }
 ```
+
+### Result Timestamps
+
+By default, the time of every result of every execution is recorded, for the `timestamps` columns of the output.
+For queries with millions of results, this takes much memory and makes the output files large.
+`--timestamps first` (or `recordTimestamps: 'first'` in the library) only records the time of the first result,
+and `--timestamps none` records none.
 
 ### Sequence Metadata
 
